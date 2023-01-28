@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+	<PropertyGroup>
+		
+		<Description>Punica essential for domain in Domain Driven Design</Description>
+		<PackageId>$(AssemblyName)</PackageId>
+		<RootNamespace>$(AssemblyName)</RootNamespace>
+		<Product>PunicaBp</Product>
+		<Authors>Radnima</Authors>
+		<VersionPrefix>1.0.0-alpha.1</VersionPrefix>
+
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/punicasoft/punica</RepositoryUrl>
+
+		<PackageIcon>punica.png</PackageIcon>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<IsPackable>True</IsPackable>
+
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\punica.png" Pack="true" Visible="false" PackagePath="" />
+	</ItemGroup>
+
+</Project>

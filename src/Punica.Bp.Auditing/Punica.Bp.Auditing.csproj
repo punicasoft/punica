@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Punica.Bp.Core\Punica.Bp.Core.csproj" />
+    <ProjectReference Include="..\Punica.Bp.Ddd.Domain\Punica.Bp.Ddd.Domain.csproj" />
+    <ProjectReference Include="..\Punica\Punica.csproj" />
+  </ItemGroup>
+
+</Project>
