@@ -5,9 +5,9 @@ namespace Punica.Bp.Ddd.EFCore.Filters.Events
 {
     public class EventTriggerCache : IEventTriggerCache
     {
-        private Dictionary<Type,bool> _createdEvents = new Dictionary<Type,bool>();
-        private Dictionary<Type, bool> _modifiedEvents = new Dictionary<Type, bool>();
-        private Dictionary<Type, bool> _deletedEvents = new Dictionary<Type, bool>();
+        private readonly Dictionary<Type,bool> _createdEvents = new Dictionary<Type,bool>();
+        private readonly Dictionary<Type, bool> _modifiedEvents = new Dictionary<Type, bool>();
+        private readonly Dictionary<Type, bool> _deletedEvents = new Dictionary<Type, bool>();
 
         public bool IsCreatedEventEnabled(Type type)
         {
@@ -16,7 +16,7 @@ namespace Punica.Bp.Ddd.EFCore.Filters.Events
                 return value;
             }
 
-            var result = HasAttribute(type, typeof(EnableCreatedEventAttribute));
+            var result = type.IsDefined(typeof(EnableCreatedEventAttribute));
             _createdEvents[type] = result;
             return result;
         }
@@ -28,7 +28,7 @@ namespace Punica.Bp.Ddd.EFCore.Filters.Events
                 return value;
             }
 
-            var result = HasAttribute(type, typeof(EnableModifiedEventAttribute));
+            var result = type.IsDefined(typeof(EnableModifiedEventAttribute)); 
             _modifiedEvents[type] = result;
             return result;
         }
@@ -40,21 +40,9 @@ namespace Punica.Bp.Ddd.EFCore.Filters.Events
                 return value;
             }
 
-            var result = HasAttribute(type, typeof(EnableCreatedEventAttribute));
+            var result = type.IsDefined(typeof(EnableDeletedEventAttribute)); 
             _deletedEvents[type] = result;
             return result;
-        }
-
-        private bool HasAttribute(Type type, Type attributeType)
-        {
-            var attributes = type.GetCustomAttributes(attributeType);
-
-            if (attributes.Any())
-            {
-                return true;
-            }
-
-            return false;
         }
     }
 }

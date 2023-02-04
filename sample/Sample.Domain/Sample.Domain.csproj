@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Punica.Bp.Auditing\Punica.Bp.Auditing.csproj" />
+    <ProjectReference Include="..\..\src\Punica.Bp.Ddd.Domain\Punica.Bp.Ddd.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Punica.Bp.MultiTenancy\Punica.Bp.MultiTenancy.csproj" />
+  </ItemGroup>
+
+</Project>
