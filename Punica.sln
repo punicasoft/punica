@@ -43,9 +43,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sample.Infrastructure", "sa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sample.Application", "sample\Sample.Application\Sample.Application.csproj", "{135A847D-74FF-4E93-A5A0-0934921A54D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Punica.Bp.CQRS", "src\Punica.Bp.CQRS\Punica.Bp.CQRS.csproj", "{1950C1AC-D0C5-4FC6-9E20-E7C4021BA85F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Punica.Bp.CQRS", "src\Punica.Bp.CQRS\Punica.Bp.CQRS.csproj", "{1950C1AC-D0C5-4FC6-9E20-E7C4021BA85F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Punica.Bp.CQRS.Tests", "test\Punica.Bp.CQRS.Tests\Punica.Bp.CQRS.Tests.csproj", "{F289463C-07B1-4CEC-8D76-B6931FF18620}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Punica.Bp.CQRS.Tests", "test\Punica.Bp.CQRS.Tests\Punica.Bp.CQRS.Tests.csproj", "{F289463C-07B1-4CEC-8D76-B6931FF18620}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Punica.Extensions.DependencyInjection", "src\Punica.Extensions.DependencyInjection\Punica.Extensions.DependencyInjection.csproj", "{01F54315-76CF-497F-A9FA-CA5E416C712E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Punica.Extensions.DependencyInjection.Tests", "test\Punica.Extensions.DependencyInjection.Tests\Punica.Extensions.DependencyInjection.Tests.csproj", "{F16F4A8F-0C67-401E-A868-8D17688467BF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -129,6 +133,14 @@ Global
 		{F289463C-07B1-4CEC-8D76-B6931FF18620}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F289463C-07B1-4CEC-8D76-B6931FF18620}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F289463C-07B1-4CEC-8D76-B6931FF18620}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01F54315-76CF-497F-A9FA-CA5E416C712E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01F54315-76CF-497F-A9FA-CA5E416C712E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01F54315-76CF-497F-A9FA-CA5E416C712E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01F54315-76CF-497F-A9FA-CA5E416C712E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F16F4A8F-0C67-401E-A868-8D17688467BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F16F4A8F-0C67-401E-A868-8D17688467BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F16F4A8F-0C67-401E-A868-8D17688467BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F16F4A8F-0C67-401E-A868-8D17688467BF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -153,6 +165,8 @@ Global
 		{135A847D-74FF-4E93-A5A0-0934921A54D1} = {27B52C05-D5C5-4802-8C8E-49FE4223F851}
 		{1950C1AC-D0C5-4FC6-9E20-E7C4021BA85F} = {6E5DD82A-8835-41DC-A5EE-4219BEE7B80C}
 		{F289463C-07B1-4CEC-8D76-B6931FF18620} = {4D2181F3-A671-4278-B79E-5239A7D5B5A0}
+		{01F54315-76CF-497F-A9FA-CA5E416C712E} = {6E5DD82A-8835-41DC-A5EE-4219BEE7B80C}
+		{F16F4A8F-0C67-401E-A868-8D17688467BF} = {4D2181F3-A671-4278-B79E-5239A7D5B5A0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B8B2037F-7F32-4DBA-B5B8-B6817F7677E0}

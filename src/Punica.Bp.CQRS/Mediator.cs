@@ -1,23 +1,36 @@
 ﻿using Punica.Bp.CQRS.Messages;
-using Punica.Bp.CQRS.Pipeline;
-using System;
-using Microsoft.Extensions.DependencyInjection;
 using Punica.Bp.CQRS.Handlers;
+using System.Collections.Concurrent;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Punica.Bp.CQRS
 {
     public class Mediator : IMediator
     {
         private readonly IServiceProvider _serviceProvider;
+        private static readonly ConcurrentDictionary<Type, ICommandHandlerWrapper> CommandHandlerWrappers = new();
+        private static readonly ConcurrentDictionary<Type, object> CommandResponseHandlersWrappers = new();
+        private static readonly ConcurrentDictionary<Type, object> QueryHandlerWrappers = new();
 
         public Mediator(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }
 
-        public Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default)
+        public async Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            if (notification == null)
+            {
+                throw new ArgumentNullException(nameof(notification));
+            }
+
+            var handlers = _serviceProvider.GetServices<INotificationHandler<TNotification>>();
+
+            foreach (var handler in handlers)
+            {
+                //Handle exceptions??
+                await handler.Handle(notification, cancellationToken);
+            }
         }
 
         public Task Send(ICommand command, CancellationToken cancellationToken = default)
@@ -28,22 +41,11 @@ namespace Punica.Bp.CQRS
             }
 
             var type = command.GetType();
-            var handler = (ICommandHandlerWrapper)Activator.CreateInstance(typeof(CommandHandlerWrapper<>).MakeGenericType(type))!;
+            var handler = CommandHandlerWrappers.GetOrAdd(type,
+                t => (ICommandHandlerWrapper)Activator.CreateInstance(
+                    typeof(CommandHandlerWrapper<>).MakeGenericType(type))!);
+
             return handler.Handle(command, _serviceProvider, cancellationToken);
-
-            ////TODO: handle types
-            //// var handler = _serviceProvider.GetRequiredService(command.GetType());
-            //var handler = _serviceProvider.GetRequiredService<ICommandHandler<ICommand>>();
-
-            //Task<Unit> Func(ICommand cmd, CancellationToken token) => handler.Convert(cmd, token);
-
-            //var pipeline = _serviceProvider
-            //    .GetServices<ICommandPipelineBehavior<ICommand, Unit>>()
-            //    .Reverse()
-            //    .Aggregate(Func, (next, pipeline) => (cmd, ct) => pipeline.Handle(cmd, next, ct));
-
-
-            //return pipeline(command, cancellationToken);
         }
 
         public Task<TResponse> Send<TResponse>(ICommand<TResponse> command, CancellationToken cancellationToken = default)
@@ -53,27 +55,27 @@ namespace Punica.Bp.CQRS
                 throw new ArgumentNullException(nameof(command));
             }
 
-
             var type = command.GetType();
-            var handler = (ICommandHandlerWrapper<TResponse>)Activator.CreateInstance(typeof(CommandHandlerWrapper<,>).MakeGenericType(type, typeof(TResponse)))!;
+            var handler = (ICommandHandlerWrapper<TResponse>)CommandResponseHandlersWrappers.GetOrAdd(type,
+                t => Activator.CreateInstance(
+                    typeof(CommandHandlerWrapperWrapper<,>).MakeGenericType(type, typeof(TResponse)))!);
             return handler.Handle(command, _serviceProvider, cancellationToken);
-            ////TODO: handle types
-            //var handler = _serviceProvider.GetRequiredService<ICommandHandler<ICommand<TResponse>, TResponse>>();
-
-            //var pipeline = _serviceProvider
-            //    .GetServices<ICommandPipelineBehavior<ICommand<TResponse>, TResponse>>()
-            //    .Reverse()
-            //    .Aggregate(handler.Handle, (next, pipeline) => (cmd, ct) => pipeline.Handle(cmd, next, ct));
-
-
-            //return pipeline(command, cancellationToken);
         }
 
 
 
         public Task<TResponse> Send<TResponse>(IQuery<TResponse> query, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            if (query == null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+
+            var type = query.GetType();
+            var handler = (IQueryHandlerWrapper<TResponse>)QueryHandlerWrappers.GetOrAdd(type,
+                t => Activator.CreateInstance(
+                    typeof(QueryHandlerWrapper<,>).MakeGenericType(type, typeof(TResponse)))!);
+            return handler.Handle(query, _serviceProvider, cancellationToken);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Punica.Bp.CQRS.Messages;
 using Punica.Bp.CQRS.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
+using Punica.Bp.CQRS.Extensions;
 
 namespace Punica.Bp.CQRS.Handlers
 {
@@ -35,7 +36,7 @@ namespace Punica.Bp.CQRS.Handlers
         Task<TResponse> Handle(object request, IServiceProvider serviceProvider, CancellationToken cancellationToken);
     }
 
-    public class CommandHandlerWrapper<TCommand, TResponse> : ICommandHandlerWrapper<TResponse> where TCommand : ICommand<TResponse>
+    public class CommandHandlerWrapperWrapper<TCommand, TResponse> : ICommandHandlerWrapper<TResponse> where TCommand : ICommand<TResponse>
     {
         public async Task<TResponse> Handle(object request, IServiceProvider serviceProvider, CancellationToken cancellationToken) =>
             await Handle((TCommand)request, serviceProvider, cancellationToken).ConfigureAwait(false);

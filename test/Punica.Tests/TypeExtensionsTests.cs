@@ -47,6 +47,9 @@ namespace Punica.Tests
             result = typeof(D).IsImplementedFrom(typeof(IC<>));
             Assert.True(result);
 
+            result = typeof(D).IsImplementedFrom(typeof(IC<B>));
+            Assert.True(result);
+
             result = typeof(D).IsImplementedFrom(typeof(IC<IB<Guid>>));
             Assert.True(result);
 

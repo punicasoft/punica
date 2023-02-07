@@ -1,8 +1,6 @@
-﻿using Punica.Bp.CQRS.Messages;
-
-namespace Punica.Bp.CQRS.Pipeline
+﻿namespace Punica.Bp.CQRS.Pipeline
 {
-    public interface ICommandPipelineBehavior<TCommand, TResponse> : IPipelineBehavior<TCommand, TResponse>// where TCommand : ICommand<TResponse>
+    public interface ICommandPipelineBehavior<TCommand, TResponse> : IPipelineBehavior<TCommand, TResponse> where TCommand : notnull
     {
     }
 }

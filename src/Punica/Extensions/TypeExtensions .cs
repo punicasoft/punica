@@ -1,34 +1,9 @@
-﻿namespace Punica.Extensions
+﻿using System.Reflection;
+
+namespace Punica.Extensions
 {
     public static class TypeExtensions
     {
-
-        //public static bool IsImplementedFromGenericType(this Type type, Type genericType)
-        //{
-        //    if (!genericType.IsGenericType) return false;
-        //    var interfaces = type.GetInterfaces();
-        //    var genericTypeDefinition = genericType.GetGenericTypeDefinition();
-        //    if (genericType.IsInterface)
-        //    {
-        //        var b = interfaces.FirstOrDefault(i =>
-        //            i.IsGenericType && i.GetGenericTypeDefinition() == genericTypeDefinition);
-
-
-        //        if (genericType.IsGenericTypeDefinition || b.GetGenericArguments()[0]
-        //                .IsImplementedFromGenericType(genericType.GetGenericArguments()[0]))
-        //        {
-        //            return true;
-        //        }
-
-        //        return interfaces.Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == genericTypeDefinition && (genericType.IsGenericTypeDefinition || i.GetGenericArguments()[0].IsImplementedFromGenericType(genericType.GetGenericArguments()[0])));
-
-        //    }
-        //    else
-        //    {
-        //        return type.IsAssignableFrom(genericType) || interfaces.Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == genericTypeDefinition).SelectMany(i => i.GetGenericArguments()).Any(t => t.IsAssignableFrom(genericType));
-        //    }
-        //}
-
         /// <summary>
         /// Check assignable types including open generic, generic type assignability
         /// </summary>
@@ -101,6 +76,11 @@
 
             return null;
 
+        }
+
+        public static bool IsOpenGeneric(this Type type)
+        {
+            return type.GetTypeInfo().IsGenericTypeDefinition || type.GetTypeInfo().ContainsGenericParameters;
         }
 
     }

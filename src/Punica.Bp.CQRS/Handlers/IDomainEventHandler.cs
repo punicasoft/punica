@@ -1,6 +1,6 @@
 ﻿namespace Punica.Bp.CQRS.Handlers
 {
-    public interface IDomainEventHandler<in TDomainEvent> :INotificationHandler<TDomainEvent>
+    public interface IDomainEventHandler<in TDomainEvent> : INotificationHandler<TDomainEvent>
     {
     }
 }
