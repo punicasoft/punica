@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Punica.Bp.CQRS\Punica.Bp.CQRS.csproj" />
+    <ProjectReference Include="..\Sample.Domain\Sample.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

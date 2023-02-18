@@ -35,11 +35,11 @@ namespace Punica.Bp.EFCore
             var methodInfo = typeof(DbContextBase)
                 .GetMethod(nameof(ConfigureBaseProperties), System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
 
-            foreach (var entityType in entityTypes)
-            {
-                methodInfo?.MakeGenericMethod(entityType.ClrType)
-                    .Invoke(this, new object[] { modelBuilder, entityType });
-            }
+            //foreach (var entityType in entityTypes)
+            //{
+            //    methodInfo?.MakeGenericMethod(entityType.ClrType)
+            //        .Invoke(this, new object[] { modelBuilder, entityType });
+            //}
 
             var configurations = this.GetService<IEnumerable<IEntityTypeConfiguration>>();
 

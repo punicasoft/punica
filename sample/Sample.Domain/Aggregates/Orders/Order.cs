@@ -18,6 +18,11 @@ namespace Sample.Domain.Aggregates.Orders
         public DateTime? DeletedOn { get; set; }
         public Guid DeletedBy { get; set; }
 
+        protected Order()
+        {
+
+        }
+
         public Order(Buyer buyer)
         {
             Buyer = buyer;

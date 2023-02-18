@@ -6,7 +6,7 @@ namespace Punica.Bp.Ddd.EFCore
 {
     public class BpDbContext : DbContextBase, IUnitOfWork
     {
-        public BpDbContext(DbContextOptions<BpDbContext> options) : base(options)
+        public BpDbContext(DbContextOptions options) : base(options)
         {
         }
     }
