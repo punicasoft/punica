@@ -5,7 +5,7 @@ using Punica.Bp.EFCore.Middleware;
 
 namespace Punica.Bp.MultiTenancy.EFCore.Filters
 {
-    public class TenantFilter : ITrackingFilter
+    public class TenantFilter : IEntityInterceptor
     {
         private readonly ITenantContext _tenantContext;
 
@@ -14,7 +14,7 @@ namespace Punica.Bp.MultiTenancy.EFCore.Filters
             _tenantContext = tenantContext;
         }
 
-        public Task BeforeSave(EntityEntry entry, CancellationToken cancellationToken = default)
+        public Task BeforeSavingAsync(EntityEntry entry, CancellationToken cancellationToken = default)
         {
             if (!_tenantContext.TenantId.HasValue)
             {
@@ -31,9 +31,14 @@ namespace Punica.Bp.MultiTenancy.EFCore.Filters
             return Task.CompletedTask;
         }
 
-        public Task<int> AfterSave(int result, CancellationToken cancellationToken = default)
+        public Task<int> AfterSavingAsync(int result, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(result);
+        }
+
+        public Task SavedFailedAsync(Exception exception, CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
         }
     }
 }

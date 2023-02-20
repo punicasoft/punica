@@ -6,7 +6,7 @@ using Punica.Bp.EFCore.Middleware;
 
 namespace Punica.Bp.Auditing.EFCore.Filters
 {
-    public class ModifiedFilter:ITrackingFilter
+    public class ModifiedFilter : IEntityInterceptor
     {
         private readonly IUserContext _userContext;
         private readonly IDateTime _dateTime;
@@ -17,7 +17,7 @@ namespace Punica.Bp.Auditing.EFCore.Filters
             _dateTime = dateTime;
         }
 
-        public Task BeforeSave(EntityEntry entry, CancellationToken cancellationToken = default)
+        public Task BeforeSavingAsync(EntityEntry entry, CancellationToken cancellationToken = default)
         {
             if (entry.State == EntityState.Modified)
             {
@@ -37,9 +37,14 @@ namespace Punica.Bp.Auditing.EFCore.Filters
             return Task.CompletedTask;
         }
 
-        public Task<int> AfterSave(int result, CancellationToken cancellationToken = default)
+        public Task<int> AfterSavingAsync(int result, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(result);
+        }
+
+        public Task SavedFailedAsync(Exception exception, CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
         }
     }
 }

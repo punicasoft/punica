@@ -9,7 +9,7 @@ using Punica.Bp.EFCore.Middleware;
 
 namespace Punica.Bp.Ddd.EFCore.Filters
 {
-    public class DomainEventFilter : ITrackingFilter
+    public class DomainEventFilter : IEntityInterceptor
     {
         private readonly List<IDomainEvent> _events;
         private readonly IEventTriggerCache _triggerCache;
@@ -24,7 +24,7 @@ namespace Punica.Bp.Ddd.EFCore.Filters
             _events = new List<IDomainEvent>();
         }
 
-        public Task BeforeSave(EntityEntry entry, CancellationToken cancellationToken = default)
+        public Task BeforeSavingAsync(EntityEntry entry, CancellationToken cancellationToken = default)
         {
             var type = entry.Metadata.ClrType;
 
@@ -72,7 +72,7 @@ namespace Punica.Bp.Ddd.EFCore.Filters
             return Task.CompletedTask;
         }
 
-        public async Task<int> AfterSave(int result, CancellationToken cancellationToken = default)
+        public async Task<int> AfterSavingAsync(int result, CancellationToken cancellationToken = default)
         {
             foreach (var domainEvent in _events)
             {
@@ -80,6 +80,11 @@ namespace Punica.Bp.Ddd.EFCore.Filters
             }
 
             return result;
+        }
+
+        public Task SavedFailedAsync(Exception exception, CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
         }
     }
 }

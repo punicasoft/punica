@@ -21,9 +21,9 @@ namespace Punica.Bp.EFCore.Middleware
             return _serviceProvider.GetServices<IEntityTypeConfiguration>();
         }
 
-        public IEnumerable<ITrackingFilter> GetTrackingFilters()
+        public IEntityInterceptor GetAggregatedEntityInterceptors()
         {
-            return _serviceProvider.GetServices<ITrackingFilter>();
+            return new EntityInterceptorAggregator(_serviceProvider.GetServices<IEntityInterceptor>());
         }
     }
 }

@@ -4,6 +4,6 @@
     {
         bool Ignore<TEntity>();
         IEnumerable<IEntityTypeConfiguration> GetEntityTypesConfigurations();
-        IEnumerable<ITrackingFilter> GetTrackingFilters();
+        IEntityInterceptor GetAggregatedEntityInterceptors();
     }
 }

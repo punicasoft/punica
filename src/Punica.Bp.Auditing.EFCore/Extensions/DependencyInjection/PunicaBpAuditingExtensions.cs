@@ -8,9 +8,9 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IServiceCollection AddAuditing(this IServiceCollection services)
         {
-            services.AddScoped<ITrackingFilter, AddedFilter>();
-            services.AddScoped<ITrackingFilter, ModifiedFilter>();
-            services.AddScoped<ITrackingFilter, DeletedFilter>();
+            services.AddScoped<IEntityInterceptor, AddedFilter>();
+            services.AddScoped<IEntityInterceptor, ModifiedFilter>();
+            services.AddScoped<IEntityInterceptor, DeletedFilter>();
             return services;
         }
     }

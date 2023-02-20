@@ -72,26 +72,24 @@ namespace Punica.Bp.EFCore
             IEnumerable<EntityEntry> entries = ChangeTracker
                 .Entries();
 
-            IEnumerable<ITrackingFilter> filters = this.GetService<IMiddlewareProvider>().GetTrackingFilters();
+            var interceptor = this.GetService<IMiddlewareProvider>().GetAggregatedEntityInterceptors();
 
-            var result = 0;
+            int result;
 
             foreach (EntityEntry entry in entries)
             {
-                var trackingFilters = filters == null ? new List<ITrackingFilter>() : filters.ToList();
+                await interceptor.BeforeSavingAsync(entry, cancellationToken);
+            }
 
-                foreach (ITrackingFilter filter in trackingFilters)
-                {
-                    await filter.BeforeSave(entry, cancellationToken);
-                }
-
+            try
+            {
                 result = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
-
-                foreach (ITrackingFilter filter in trackingFilters)
-                {
-                    result = await filter.AfterSave(result, cancellationToken);
-                }
-
+                await interceptor.AfterSavingAsync(result, cancellationToken);
+            }
+            catch (Exception e)
+            {
+                await interceptor.SavedFailedAsync(e, cancellationToken);
+                throw;
             }
 
             return result;

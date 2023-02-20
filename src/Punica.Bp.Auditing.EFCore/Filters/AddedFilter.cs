@@ -6,7 +6,7 @@ using Punica.Bp.EFCore.Middleware;
 
 namespace Punica.Bp.Auditing.EFCore.Filters
 {
-    public class AddedFilter : ITrackingFilter
+    public class AddedFilter : IEntityInterceptor
     {
         private readonly IUserContext _userContext;
         private readonly IDateTime _dateTime;
@@ -17,7 +17,7 @@ namespace Punica.Bp.Auditing.EFCore.Filters
             _dateTime = dateTime;
         }
 
-        public Task BeforeSave(EntityEntry entry, CancellationToken cancellationToken = default)
+        public Task BeforeSavingAsync(EntityEntry entry, CancellationToken cancellationToken = default)
         {
             if (entry.State == EntityState.Added)
             {
@@ -34,20 +34,6 @@ namespace Punica.Bp.Auditing.EFCore.Filters
                     entry.As<ICreatedBy>().Property(p => p.CreatedBy).CurrentValue = _userContext.UserId;
                 }
 
-                //var implementedType = type.GetImplementedType(typeof(ICreatedBy<IEntity<Guid>>));
-
-                //if (implementedType != null)
-                //{
-                //    dynamic entity = Activator.CreateInstance(implementedType);
-                //    entity.Id = _userContext.UserId;
-                //    //PropertyInfo idProp = genericType.GetProperty("Id");
-                //    //idProp.SetValue(entity, _userContext.UserId);
-
-                //    setter.SetNavigation(nameof(ICreatedBy<object>.CreatedBy), entity);
-
-                //}
-
-
                 if (type.IsAssignableTo(typeof(IModifiedDate)))
                 {
                     entry.As<IModifiedDate>().Property(p => p.ModifiedOn).CurrentValue = _dateTime.UtcNow;
@@ -62,9 +48,14 @@ namespace Punica.Bp.Auditing.EFCore.Filters
             return Task.CompletedTask;
         }
 
-        public Task<int> AfterSave(int result, CancellationToken cancellationToken = default)
+        public Task<int> AfterSavingAsync(int result, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(result);
+        }
+
+        public Task SavedFailedAsync(Exception exception, CancellationToken cancellationToken = default)
+        {
+           return Task.CompletedTask;
         }
     }
 }

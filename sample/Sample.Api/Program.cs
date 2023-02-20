@@ -39,8 +39,8 @@ builder.Services.AddTransient<IEntityTypeConfiguration, DomainConfiguration>();
 builder.Services.AddTransient<IMiddlewareProvider, MiddlewareProvider>();
 
 builder.Services.AddAuditing();
-builder.Services.AddScoped<ITrackingFilter, TenantFilter>();
-builder.Services.AddTransient<ITrackingFilter, DomainEventFilter>();
+builder.Services.AddScoped<IEntityInterceptor, TenantFilter>();
+builder.Services.AddTransient<IEntityInterceptor, DomainEventFilter>();
 builder.Services.AddSingleton<IEventTriggerCache, EventTriggerCache>();
 
 builder.Services.AddScoped<ITenantContext, TenantContext>();
