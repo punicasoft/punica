@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace Punica.Extensions.DependencyInjection.Tests
 {
@@ -76,6 +77,40 @@ namespace Punica.Extensions.DependencyInjection.Tests
         public void RegisterServices_Should_Work_For_Interface_With_Open_Generic_With_Open_Generic_Instance_3()
         {
             ContainsNoRegistration<ITestInterface<string, int>>(typeof(ITestInterface<,>), true);
+        }
+
+        [Fact]
+        public void RegisterServices_Should_Work_For_Interface_With_Open_Generic_With_No_Genric_Construction()
+        {
+            ContainsOneRegistration<INotificationHandler<EntityEvent<Entity>>>(typeof(INotificationHandler<>), true);
+            List<IDomainEvent> events = new List<IDomainEvent>();
+            events.Add(new EntityEvent<Entity>());
+
+            foreach (var domainEvent in events)
+            {
+                Publish(domainEvent);
+            }
+           
+        }
+
+        private void Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default)
+        {
+            if (notification == null)
+            {
+                throw new ArgumentNullException(nameof(notification));
+            }
+
+            var serviceProvider = _services.BuildServiceProvider();
+            var provider = serviceProvider.CreateScope().ServiceProvider;
+
+            var type = notification.GetType();
+            var genericType = typeof(INotificationHandler<>).MakeGenericType(type);
+            //Activator.CreateInstance(typeof(CommandHandlerWrapper<>).MakeGenericType(type))!)
+
+            var handlers = provider.GetServices(genericType); //provider.GetServices<INotificationHandler<TNotification>>();
+
+            Assert.Single(handlers);
+
         }
 
 
@@ -219,5 +254,38 @@ namespace Punica.Extensions.DependencyInjection.Tests
         }
     }
 
-    
+    #region Genric Type Detection
+
+    public class Entity
+    {
+
+    }
+
+    public class EntityEvent<TAggregate> : IDomainEvent 
+    {
+
+    }
+
+    public class EntityEventHandler : IDomainEventHandler<EntityEvent<Entity>>
+    {
+        public Task Handle(EntityEvent<Entity> notification, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public interface IDomainEvent
+    {
+    }
+
+    public interface INotificationHandler<in TNotification>
+    {
+        Task Handle(TNotification notification, CancellationToken cancellationToken);
+    }
+
+    public interface IDomainEventHandler<in TDomainEvent> : INotificationHandler<TDomainEvent>
+    {
+    }
+
+    #endregion
 }

@@ -1,12 +1,19 @@
 using Microsoft.EntityFrameworkCore;
+using Punica;
 using Punica.Bp.Auditing.EFCore.Configurations;
+using Punica.Bp.Core;
+using Punica.Bp.Ddd.EFCore.Configurations;
 using Punica.Bp.Ddd.EFCore.Filters;
+using Punica.Bp.Ddd.EFCore.Filters.Events;
 using Punica.Bp.EFCore.Configurations;
 using Punica.Bp.EFCore.Middleware;
+using Punica.Bp.MultiTenancy;
 using Punica.Bp.MultiTenancy.EFCore.Configurations;
 using Punica.Bp.MultiTenancy.EFCore.Filters;
 using Sample.Application.Orders;
+using Sample.Domain.Aggregates.Orders;
 using Sample.Infrastructure;
+using Sample.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,10 +35,21 @@ builder.Services.AddDbContext<OrderDbContext>(options =>
 builder.Services.AddTransient<IEntityTypeConfiguration, DateTimeConfiguration>();
 builder.Services.AddTransient<IEntityTypeConfiguration, AuditEntityConfigurations>();
 builder.Services.AddTransient<IEntityTypeConfiguration, TenantConfiguration>();
+builder.Services.AddTransient<IEntityTypeConfiguration, DomainConfiguration>();
+builder.Services.AddTransient<IMiddlewareProvider, MiddlewareProvider>();
 
-//builder.Services.AddAuditing();
-//builder.Services.AddScoped<ITrackingFilter, TenantFilter>();
-//builder.Services.AddScoped<ITrackingFilter, DomainEventFilter>();
+builder.Services.AddAuditing();
+builder.Services.AddScoped<ITrackingFilter, TenantFilter>();
+builder.Services.AddTransient<ITrackingFilter, DomainEventFilter>();
+builder.Services.AddSingleton<IEventTriggerCache, EventTriggerCache>();
+
+builder.Services.AddScoped<ITenantContext, TenantContext>();
+builder.Services.AddScoped<IUserContext, UserContext>();
+
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
+builder.Services.AddScoped<IDateTime, BasicDateTime>();
+
 
 
 var app = builder.Build();

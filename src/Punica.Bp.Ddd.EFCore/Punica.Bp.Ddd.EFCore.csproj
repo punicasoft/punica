@@ -7,14 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Punica.Bp.CQRS\Punica.Bp.CQRS.csproj" />
     <ProjectReference Include="..\Punica.Bp.Ddd.Domain\Punica.Bp.Ddd.Domain.csproj" />
     <ProjectReference Include="..\Punica.Bp.EFCore\Punica.Bp.EFCore.csproj" />
-    <ProjectReference Include="..\Punica.Bp.EventBus\Punica.Bp.EventBus.csproj" />
     <ProjectReference Include="..\Punica\Punica.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Configurations\" />
   </ItemGroup>
 
 </Project>

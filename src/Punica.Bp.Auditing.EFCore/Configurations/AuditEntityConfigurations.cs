@@ -43,7 +43,7 @@ namespace Punica.Bp.Auditing.EFCore.Configurations
             if (type.IsAssignableTo(typeof(IDeletedDate)))
             {
                 builder.Property(nameof(IDeletedDate.DeletedOn))
-                    .IsRequired()
+                    .IsRequired(false)
                     .HasColumnName(nameof(IDeletedDate.DeletedOn));
             }
 
@@ -65,6 +65,11 @@ namespace Punica.Bp.Auditing.EFCore.Configurations
                 builder.HasQueryFilter(expression);//TODO fix queries
             }
 
+        }
+
+        public bool Ignore<TEntity>()
+        {
+            return false;
         }
     }
 }

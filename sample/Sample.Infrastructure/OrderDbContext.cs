@@ -6,12 +6,12 @@ namespace Sample.Infrastructure
 {
     public class OrderDbContext : BpDbContext
     {
+        public string Schema { get; set; }
+
         public OrderDbContext(DbContextOptions<OrderDbContext> options) : base(options)
         {
             Schema = "sample";
         }
-
-        public string Schema { get; set; }
 
         public virtual DbSet<Order> Orders { get; set; }
 
@@ -30,7 +30,7 @@ namespace Sample.Infrastructure
                         a.Property(e => e.Name).HasMaxLength(30);
                         a.Property(e => e.Email).HasMaxLength(100);
                     });
-                  
+
 
                 b.Navigation(q => q.Items).UsePropertyAccessMode(PropertyAccessMode.Property);
 

@@ -34,14 +34,8 @@ namespace Punica.Bp.EFCore
 
             var methodInfo = typeof(DbContextBase)
                 .GetMethod(nameof(ConfigureBaseProperties), System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-
-            //foreach (var entityType in entityTypes)
-            //{
-            //    methodInfo?.MakeGenericMethod(entityType.ClrType)
-            //        .Invoke(this, new object[] { modelBuilder, entityType });
-            //}
-
-            var configurations = this.GetService<IEnumerable<IEntityTypeConfiguration>>();
+            
+            var configurations = this.GetService<IMiddlewareProvider>().GetEntityTypesConfigurations();
 
             foreach (var entityType in entityTypes)
             {
@@ -50,25 +44,27 @@ namespace Punica.Bp.EFCore
             }
         }
 
-        protected virtual void ConfigureBaseProperties<TEntity>([NotNull] ModelBuilder modelBuilder, [NotNull] IMutableEntityType mutableEntityType, IEnumerable<IEntityTypeConfiguration> configurations)
+        protected virtual void ConfigureBaseProperties<TEntity>([NotNull] ModelBuilder modelBuilder, [NotNull] IMutableEntityType mutableEntityType, [NotNull] IEnumerable<IEntityTypeConfiguration> configurations)
             where TEntity : class
         {
             if (mutableEntityType.IsOwned())
             {
                 return;
             }
+            
+            // ReSharper disable once PossibleMultipleEnumeration
+            if (configurations.Any(configuration => configuration.Ignore<TEntity>()))
+            {
+                return;
+            }
 
-            //if (!typeof(IEntity).IsAssignableFrom(typeof(TEntity)))
-            //{
-            //    return;
-            //}
-
+            // ReSharper disable once PossibleMultipleEnumeration
             foreach (var configuration in configurations)
             {
                 configuration.Configure(modelBuilder.Entity<TEntity>());
             }
 
-          
+
         }
 
         public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
@@ -76,7 +72,7 @@ namespace Punica.Bp.EFCore
             IEnumerable<EntityEntry> entries = ChangeTracker
                 .Entries();
 
-            IEnumerable<ITrackingFilter> filters = this.GetService<IEnumerable<ITrackingFilter>>();
+            IEnumerable<ITrackingFilter> filters = this.GetService<IMiddlewareProvider>().GetTrackingFilters();
 
             var result = 0;
 

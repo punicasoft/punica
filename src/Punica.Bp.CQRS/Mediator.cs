@@ -11,26 +11,25 @@ namespace Punica.Bp.CQRS
         private static readonly ConcurrentDictionary<Type, ICommandHandlerWrapper> CommandHandlerWrappers = new();
         private static readonly ConcurrentDictionary<Type, object> CommandResponseHandlersWrappers = new();
         private static readonly ConcurrentDictionary<Type, object> QueryHandlerWrappers = new();
+        private static readonly ConcurrentDictionary<Type, INotificationHandlerWrapper> NotificationHandlerWrappers = new();
 
         public Mediator(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }
 
-        public async Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default)
+        public Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default)
         {
             if (notification == null)
             {
                 throw new ArgumentNullException(nameof(notification));
             }
 
-            var handlers = _serviceProvider.GetServices<INotificationHandler<TNotification>>();
-
-            foreach (var handler in handlers)
-            {
-                //Handle exceptions??
-                await handler.Handle(notification, cancellationToken);
-            }
+            var type = notification.GetType();
+            var handler = NotificationHandlerWrappers.GetOrAdd(type,
+                t => (INotificationHandlerWrapper)Activator.CreateInstance(
+                    typeof(NotificationHandlerWrapper<>).MakeGenericType(type))!);
+           return handler.Handle(notification, _serviceProvider, cancellationToken);
         }
 
         public Task Send(ICommand command, CancellationToken cancellationToken = default)

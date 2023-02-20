@@ -1,9 +1,11 @@
 ﻿using Punica.Bp.Auditing;
 using Punica.Bp.Ddd.Domain.Entities;
+using Punica.Bp.Ddd.Domain.Events;
 using Punica.Bp.MultiTenancy;
 
 namespace Sample.Domain.Aggregates.Orders
 {
+    [EnableCreatedEvent]
     public class Order : AggregateRoot<Guid>, IAuditableEntity, IMultiTenant
     {
         public string Status { get; private set; }
@@ -17,8 +19,9 @@ namespace Sample.Domain.Aggregates.Orders
         public bool Deleted { get; set; }
         public DateTime? DeletedOn { get; set; }
         public Guid DeletedBy { get; set; }
+        public Guid? TenantId { get; private set; }
 
-        protected Order()
+        private Order()
         {
 
         }
@@ -36,7 +39,10 @@ namespace Sample.Domain.Aggregates.Orders
             Items.Add(item);
         }
 
+        public void Processing()
+        {
+            Status = "Processing";
+        }
 
-        public Guid? TenantId { get; }
     }
 }

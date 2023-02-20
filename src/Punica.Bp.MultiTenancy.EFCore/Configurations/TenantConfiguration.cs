@@ -15,5 +15,10 @@ namespace Punica.Bp.MultiTenancy.EFCore.Configurations
                     .HasColumnName(nameof(IMultiTenant.TenantId));
             }
         }
+
+        public bool Ignore<TEntity>()
+        {
+            return false;
+        }
     }
 }

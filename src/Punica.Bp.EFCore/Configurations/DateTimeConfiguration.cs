@@ -18,5 +18,10 @@ namespace Punica.Bp.EFCore.Configurations
                         : new NullableDateTimeValueConverter());
             }
         }
+
+        public bool Ignore<TEntity>()
+        {
+            return false;
+        }
     }
 }

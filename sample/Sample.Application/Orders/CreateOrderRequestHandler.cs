@@ -5,9 +5,14 @@ namespace Sample.Application.Orders
 {
     public class CreateOrderRequestHandler : ICommandHandler<CreateOrderRequest, Guid>
     {
+        private readonly IOrderRepository _orderRepository;
 
+        public CreateOrderRequestHandler(IOrderRepository orderRepository)
+        {
+            _orderRepository = orderRepository;
+        }
 
-        public Task<Guid> Handle(CreateOrderRequest command, CancellationToken cancellationToken)
+        public async Task<Guid> Handle(CreateOrderRequest command, CancellationToken cancellationToken)
         {
             var buyer = new Buyer
             {
@@ -22,8 +27,11 @@ namespace Sample.Application.Orders
                 order.AddItem(new OrderItem(item.ProductId, item.ProductName, item.Price, item.Units));
             }
 
+            await _orderRepository.InsertAsync(order, cancellationToken);
 
-            return Task.FromResult(Guid.NewGuid());
+            await _orderRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+
+            return order.Id;
         }
     }
 }

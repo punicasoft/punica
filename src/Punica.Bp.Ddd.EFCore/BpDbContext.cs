@@ -4,9 +4,9 @@ using Punica.Bp.EFCore;
 
 namespace Punica.Bp.Ddd.EFCore
 {
-    public class BpDbContext : DbContextBase, IUnitOfWork
+    public abstract class BpDbContext : DbContextBase, IUnitOfWork
     {
-        public BpDbContext(DbContextOptions options) : base(options)
+        protected BpDbContext(DbContextOptions options) : base(options)
         {
         }
     }

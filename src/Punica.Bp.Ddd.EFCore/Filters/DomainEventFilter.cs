@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Punica.Bp.CQRS;
 using Punica.Bp.Ddd.Domain.Entities;
 using Punica.Bp.Ddd.Domain.Events;
 using Punica.Bp.Ddd.EFCore.Filters.Events;
 using Punica.Bp.EFCore.Extensions;
 using Punica.Bp.EFCore.Middleware;
-using Punica.Bp.EventBus;
 
 namespace Punica.Bp.Ddd.EFCore.Filters
 {
@@ -14,13 +14,13 @@ namespace Punica.Bp.Ddd.EFCore.Filters
         private readonly List<IDomainEvent> _events;
         private readonly IEventTriggerCache _triggerCache;
         private readonly IDateTime _dateTime;
-        private readonly IBus _bus;
+        private readonly IPublisher _publisher;
         
-        public DomainEventFilter(IEventTriggerCache triggerCache, IDateTime dateTime, IBus bus)
+        public DomainEventFilter(IEventTriggerCache triggerCache, IDateTime dateTime, IPublisher publisher)
         {
             _triggerCache = triggerCache;
             _dateTime = dateTime;
-            _bus = bus;
+            _publisher = publisher;
             _events = new List<IDomainEvent>();
         }
 
@@ -43,7 +43,7 @@ namespace Punica.Bp.Ddd.EFCore.Filters
                 }
 
             }
-            else if (entry.State == EntityState.Modified && _triggerCache.IsModifiedEventEnabled(type))
+            else if (entry.State == EntityState.Modified && _triggerCache.IsModifiedEventEnabled(type)) // TODO: could lead looping if on the event entity modified and saved again
             {
                 var constructed = typeof(EntityModifiedDomainEvent<>).MakeGenericType(entry.Metadata.ClrType);
                 object? o = Activator.CreateInstance(constructed, entry.Entity, _dateTime.UtcNow);
@@ -76,7 +76,7 @@ namespace Punica.Bp.Ddd.EFCore.Filters
         {
             foreach (var domainEvent in _events)
             {
-                await _bus.Publish(domainEvent, cancellationToken);
+                await _publisher.Publish(domainEvent, cancellationToken);
             }
 
             return result;
