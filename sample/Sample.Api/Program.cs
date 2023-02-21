@@ -2,6 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Punica;
 using Punica.Bp.Auditing.EFCore.Configurations;
 using Punica.Bp.Core;
+using Punica.Bp.Ddd.Domain.Repository;
+using Punica.Bp.Ddd.EFCore.Extensions.DependencyInjection;
+using Punica.Bp.Ddd.EFCore;
 using Punica.Bp.Ddd.EFCore.Configurations;
 using Punica.Bp.Ddd.EFCore.Filters;
 using Punica.Bp.Ddd.EFCore.Filters.Events;
@@ -43,10 +46,12 @@ builder.Services.AddScoped<IEntityInterceptor, TenantFilter>();
 builder.Services.AddTransient<IEntityInterceptor, DomainEventFilter>();
 builder.Services.AddSingleton<IEventTriggerCache, EventTriggerCache>();
 
+
+
 builder.Services.AddScoped<ITenantContext, TenantContext>();
 builder.Services.AddScoped<IUserContext, UserContext>();
 
-builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddRepositories<OrderDbContext>();
 
 builder.Services.AddScoped<IDateTime, BasicDateTime>();
 

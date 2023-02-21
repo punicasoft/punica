@@ -23,5 +23,14 @@ namespace Sample.Api.Controllers
 
             return Ok(orderId);
         }
+
+        [HttpPost("{orderId}")]
+        public async Task<ActionResult<string>> AddItemToOrder(Guid orderId, AddItemToOrderCommand command)
+        {
+            command.OrderId = orderId;
+            await _mediator.Send(command);
+
+            return Ok("success");
+        }
     }
 }

@@ -1,15 +1,16 @@
 ﻿using Punica.Bp.CQRS.Handlers;
+using Punica.Bp.Ddd.Domain.Repository;
 using Sample.Domain.Aggregates.Orders;
 
 namespace Sample.Application.Orders
 {
     public class CreateOrderRequestHandler : ICommandHandler<CreateOrderRequest, Guid>
     {
-        private readonly IOrderRepository _orderRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CreateOrderRequestHandler(IOrderRepository orderRepository)
+        public CreateOrderRequestHandler(IUnitOfWork unitOfWork)
         {
-            _orderRepository = orderRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Guid> Handle(CreateOrderRequest command, CancellationToken cancellationToken)
@@ -27,9 +28,11 @@ namespace Sample.Application.Orders
                 order.AddItem(new OrderItem(item.ProductId, item.ProductName, item.Price, item.Units));
             }
 
-            await _orderRepository.InsertAsync(order, cancellationToken);
+            var repository = _unitOfWork.GetRepository<Order>();
 
-            await _orderRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+            await repository.InsertAsync(order, cancellationToken);
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return order.Id;
         }

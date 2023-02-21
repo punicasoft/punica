@@ -5,28 +5,32 @@ using Punica.Bp.Ddd.Domain.Entities;
 
 namespace Punica.Bp.Ddd.EFCore
 {
-    public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity : class, IEntity
+    public class Repository<TEntity> : IRepository<TEntity> where TEntity : class, IEntity
     {
-        private readonly BpDbContext _dbContext;
+        private readonly DbContext _dbContext;
 
-        protected abstract IQueryable<TEntity> IncludeAll(IQueryable<TEntity> query);
+        protected DbSet<TEntity> Entities => _dbContext.Set<TEntity>();
 
-        public IUnitOfWork UnitOfWork => _dbContext;
-
-        protected Repository(BpDbContext dbContext)
+        public Repository(DbContext dbContext)
         {
             _dbContext = dbContext;
         }
 
+        public async Task<TEntity?> FindAsync(object key, CancellationToken cancellationToken = default)
+        {
+            var savedEntity = await Entities.FindAsync(new object?[] { key }, cancellationToken: cancellationToken);
+            return savedEntity;
+        }
+
         public async Task<TEntity> InsertAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
-            var savedEntity = await _dbContext.Set<TEntity>().AddAsync(entity, cancellationToken);
+            var savedEntity = await Entities.AddAsync(entity, cancellationToken);
             return savedEntity.Entity;
         }
 
         public async Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
         {
-            TEntity? entity = await IncludeAll(_dbContext.Set<TEntity>())
+            TEntity? entity = await Entities
                 .Where(predicate)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -37,7 +41,7 @@ namespace Punica.Bp.Ddd.EFCore
         {
             _dbContext.Attach(entity);
 
-            var updated = _dbContext.Update(entity).Entity;
+            var updated = Entities.Update(entity).Entity;
 
             return Task.FromResult(updated);
         }

@@ -13,9 +13,5 @@ namespace Sample.Infrastructure.Repositories
             _dbContext = dbContext;
         }
 
-        protected override IQueryable<Order> IncludeAll(IQueryable<Order> query)
-        {
-           return query.Include(o => o.Items);
-        }
     }
 }

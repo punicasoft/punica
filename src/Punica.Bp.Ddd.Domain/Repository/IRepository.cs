@@ -4,7 +4,7 @@ namespace Punica.Bp.Ddd.Domain.Repository
 {
     public interface IRepository<TEntity> where TEntity : class//, IAggregateRoot
     {
-        IUnitOfWork UnitOfWork { get; }
+        Task<TEntity?> FindAsync(object key, CancellationToken cancellationToken = default);
 
         Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
 

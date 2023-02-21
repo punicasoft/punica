@@ -23,15 +23,14 @@ namespace Sample.Domain.Aggregates.Orders
 
         private Order()
         {
-
+            Items = new List<OrderItem>();
+            Status = "New";
         }
 
-        public Order(Buyer buyer)
+        public Order(Buyer buyer): this()
         {
             Buyer = buyer;
-            Items = new List<OrderItem>();
             OrderDate = DateTime.UtcNow;
-            Status = "New";
         }
 
         public void AddItem(OrderItem item)

@@ -8,7 +8,17 @@ namespace Punica.Bp.Ddd.EFCore.Configurations
     {
         public void Configure<TEntity>(EntityTypeBuilder<TEntity> builder) where TEntity : class
         {
-            return;
+            var type = typeof(TEntity);
+
+            if (type.IsAssignableTo(typeof(IEntity)))
+            {
+                var navigations = builder.Metadata.GetNavigations();
+
+                foreach (var navigation in navigations)
+                {
+                    navigation.SetIsEagerLoaded(true);
+                }
+            }
         }
 
         public bool Ignore<TEntity>()
