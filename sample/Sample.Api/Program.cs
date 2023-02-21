@@ -2,21 +2,17 @@ using Microsoft.EntityFrameworkCore;
 using Punica;
 using Punica.Bp.Auditing.EFCore.Configurations;
 using Punica.Bp.Core;
-using Punica.Bp.Ddd.Domain.Repository;
 using Punica.Bp.Ddd.EFCore.Extensions.DependencyInjection;
-using Punica.Bp.Ddd.EFCore;
 using Punica.Bp.Ddd.EFCore.Configurations;
-using Punica.Bp.Ddd.EFCore.Filters;
-using Punica.Bp.Ddd.EFCore.Filters.Events;
+using Punica.Bp.Ddd.EFCore.Interceptors;
+using Punica.Bp.Ddd.EFCore.Interceptors.Events;
 using Punica.Bp.EFCore.Configurations;
 using Punica.Bp.EFCore.Middleware;
 using Punica.Bp.MultiTenancy;
 using Punica.Bp.MultiTenancy.EFCore.Configurations;
-using Punica.Bp.MultiTenancy.EFCore.Filters;
-using Sample.Application.Orders;
-using Sample.Domain.Aggregates.Orders;
+using Punica.Bp.MultiTenancy.EFCore.Interceptor;
 using Sample.Infrastructure;
-using Sample.Infrastructure.Repositories;
+using Sample.Application.Orders.Commands;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,8 +38,8 @@ builder.Services.AddTransient<IEntityTypeConfiguration, DomainConfiguration>();
 builder.Services.AddTransient<IMiddlewareProvider, MiddlewareProvider>();
 
 builder.Services.AddAuditing();
-builder.Services.AddScoped<IEntityInterceptor, TenantFilter>();
-builder.Services.AddTransient<IEntityInterceptor, DomainEventFilter>();
+builder.Services.AddScoped<IEntityInterceptor, TenantInterceptor>();
+builder.Services.AddTransient<IEntityInterceptor, DomainEntityEventInterceptor>();
 builder.Services.AddSingleton<IEventTriggerCache, EventTriggerCache>();
 
 
@@ -54,6 +50,8 @@ builder.Services.AddScoped<IUserContext, UserContext>();
 builder.Services.AddRepositories<OrderDbContext>();
 
 builder.Services.AddScoped<IDateTime, BasicDateTime>();
+
+builder.Services.AddHttpContextAccessor();
 
 
 

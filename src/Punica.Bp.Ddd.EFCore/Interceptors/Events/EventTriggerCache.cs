@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using Punica.Bp.Ddd.Domain.Events;
 
-namespace Punica.Bp.Ddd.EFCore.Filters.Events
+namespace Punica.Bp.Ddd.EFCore.Interceptors.Events
 {
     public class EventTriggerCache : IEventTriggerCache
     {

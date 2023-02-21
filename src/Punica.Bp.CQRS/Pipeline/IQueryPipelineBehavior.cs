@@ -1,6 +1,4 @@
-﻿using Punica.Bp.CQRS.Messages;
-
-namespace Punica.Bp.CQRS.Pipeline
+﻿namespace Punica.Bp.CQRS.Pipeline
 {
     public interface IQueryPipelineBehavior<TQuery, TResponse> : IPipelineBehavior<TQuery, TResponse> where TQuery : notnull
     {

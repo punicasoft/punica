@@ -1,6 +1,4 @@
-﻿using Punica.Bp.Ddd.Domain.Entities;
-
-namespace Punica.Bp.Ddd.Domain.Repository
+﻿namespace Punica.Bp.Ddd.Domain.Repository
 {
     public interface IUnitOfWork
     {

@@ -1,7 +1,6 @@
 ﻿using Punica.Bp.CQRS.Messages;
 using Punica.Bp.CQRS.Handlers;
 using System.Collections.Concurrent;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Punica.Bp.CQRS
 {

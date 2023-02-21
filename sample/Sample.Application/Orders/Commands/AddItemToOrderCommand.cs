@@ -1,6 +1,6 @@
 ﻿using Punica.Bp.CQRS.Messages;
 
-namespace Sample.Application.Orders
+namespace Sample.Application.Orders.Commands
 {
     public class AddItemToOrderCommand : Item, ICommand
     {

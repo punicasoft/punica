@@ -4,14 +4,14 @@ using Punica.Bp.Core;
 using Punica.Bp.EFCore.Extensions;
 using Punica.Bp.EFCore.Middleware;
 
-namespace Punica.Bp.Auditing.EFCore.Filters
+namespace Punica.Bp.Auditing.EFCore.Interceptors
 {
-    public class DeletedFilter :IEntityInterceptor
+    public class EntityModifiedInterceptor : IEntityInterceptor
     {
         private readonly IUserContext _userContext;
         private readonly IDateTime _dateTime;
 
-        public DeletedFilter(IUserContext userContext, IDateTime dateTime)
+        public EntityModifiedInterceptor(IUserContext userContext, IDateTime dateTime)
         {
             _userContext = userContext;
             _dateTime = dateTime;
@@ -19,28 +19,18 @@ namespace Punica.Bp.Auditing.EFCore.Filters
 
         public Task BeforeSavingAsync(EntityEntry entry, CancellationToken cancellationToken = default)
         {
-            if (entry.State == EntityState.Deleted)
+            if (entry.State == EntityState.Modified)
             {
                 var type = entry.Metadata.ClrType;
 
-                if (!type.IsAssignableTo(typeof(ISoftDeletable)))
+                if (type.IsAssignableTo(typeof(IModifiedDate)))
                 {
-                    return Task.CompletedTask; 
+                    entry.As<IModifiedDate>().Property(p => p.ModifiedOn).CurrentValue = _dateTime.UtcNow;
                 }
 
-                if (type.IsAssignableTo(typeof(ISoftDeletable)))
+                if (type.IsAssignableTo(typeof(IModifiedBy)))
                 {
-                    entry.As<ISoftDeletable>().Property(p => p.Deleted).CurrentValue = true;
-                }
-
-                if (type.IsAssignableTo(typeof(IDeletedDate)))
-                {
-                    entry.As<IDeletedDate>().Property(p => p.DeletedOn).CurrentValue = _dateTime.UtcNow;
-                }
-
-                if (type.IsAssignableTo(typeof(IDeletedBy)))
-                {
-                    entry.As<IDeletedBy>().Property(p => p.DeletedBy).CurrentValue = _userContext.UserId;
+                    entry.As<IModifiedBy>().Property(p => p.ModifiedBy).CurrentValue = _userContext.UserId;
                 }
             }
 

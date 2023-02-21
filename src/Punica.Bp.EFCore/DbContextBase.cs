@@ -94,6 +94,24 @@ namespace Punica.Bp.EFCore
 
             return result;
         }
-        
+
+        //private LambdaExpression CombineQueryFilters(Type entityType, LambdaExpression baseFilter, IEnumerable<LambdaExpression> andAlsoExpressions)
+        //{
+        //    var newParam = Expression.Parameter(entityType);
+
+        //    var andAlsoExprBase = (Expression<Func<IEntity, bool>>)(_ => true);
+        //    var andAlsoExpr = ReplacingExpressionVisitor.Replace(andAlsoExprBase.Parameters.Single(), newParam, andAlsoExprBase.Body);
+        //    foreach (var expressionBase in andAlsoExpressions)
+        //    {
+        //        var expression = ReplacingExpressionVisitor.Replace(expressionBase.Parameters.Single(), newParam, expressionBase.Body);
+        //        andAlsoExpr = Expression.AndAlso(andAlsoExpr, expression);
+        //    }
+
+        //    var baseExp = ReplacingExpressionVisitor.Replace(baseFilter.Parameters.Single(), newParam, baseFilter.Body);
+        //    var exp = Expression.OrElse(baseExp, andAlsoExpr);
+
+        //    return Expression.Lambda(exp, newParam);
+        //}
+
     }
 }

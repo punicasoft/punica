@@ -3,7 +3,7 @@ using Punica.Bp.Ddd.Domain.Events;
 using Punica.Bp.Ddd.Domain.Repository;
 using Sample.Domain.Aggregates.Orders;
 
-namespace Sample.Application.Orders
+namespace Sample.Application.Orders.Commands
 {
     public class OrderCreatedEventHandler : IDomainEventHandler<EntityCreatedDomainEvent<Order>>
     {

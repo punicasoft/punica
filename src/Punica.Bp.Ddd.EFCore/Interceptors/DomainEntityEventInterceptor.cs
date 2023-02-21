@@ -3,20 +3,20 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Punica.Bp.CQRS;
 using Punica.Bp.Ddd.Domain.Entities;
 using Punica.Bp.Ddd.Domain.Events;
-using Punica.Bp.Ddd.EFCore.Filters.Events;
+using Punica.Bp.Ddd.EFCore.Interceptors.Events;
 using Punica.Bp.EFCore.Extensions;
 using Punica.Bp.EFCore.Middleware;
 
-namespace Punica.Bp.Ddd.EFCore.Filters
+namespace Punica.Bp.Ddd.EFCore.Interceptors
 {
-    public class DomainEventFilter : IEntityInterceptor
+    public class DomainEntityEventInterceptor : IEntityInterceptor
     {
         private readonly List<IDomainEvent> _events;
         private readonly IEventTriggerCache _triggerCache;
         private readonly IDateTime _dateTime;
         private readonly IPublisher _publisher;
         
-        public DomainEventFilter(IEventTriggerCache triggerCache, IDateTime dateTime, IPublisher publisher)
+        public DomainEntityEventInterceptor(IEventTriggerCache triggerCache, IDateTime dateTime, IPublisher publisher)
         {
             _triggerCache = triggerCache;
             _dateTime = dateTime;

@@ -7,6 +7,7 @@ namespace Sample.Infrastructure
     public class OrderDbContext : BpDbContext
     {
         public string Schema { get; set; }
+       // private readonly ITenantContext _tenantContext;
 
         public OrderDbContext(DbContextOptions<OrderDbContext> options) : base(options)
         {
@@ -19,10 +20,10 @@ namespace Sample.Infrastructure
         {
             base.OnModelCreating(modelBuilder);
 
-
+            //var tenantContext = this.GetService<ITenantContext>();
             modelBuilder.Entity<Order>(b =>
             {
-                b.ToTable(nameof(Order)+"s", Schema);
+                b.ToTable(nameof(Order) + "s", Schema);
                 b.OwnsOne(o => o.Buyer,
                     a =>
                     {
@@ -36,15 +37,17 @@ namespace Sample.Infrastructure
 
                 b.Property(q => q.Status)
                     .HasMaxLength(10);
+
+                //b.HasQueryFilter(e => e.TenantId == _tenantContext.TenantId);
             });
 
             modelBuilder.Entity<OrderItem>(b =>
             {
                 b.ToTable("OrderItems", Schema);
-                
+
                 b.Property(q => q.ProductId).IsRequired();
                 b.Property(q => q.ProductName).IsRequired().HasMaxLength(200);
-                b.Property(q => q.UnitPrice).IsRequired().HasPrecision(10,2);
+                b.Property(q => q.UnitPrice).IsRequired().HasPrecision(10, 2);
                 b.Property(q => q.Units).IsRequired();
             });
         }

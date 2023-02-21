@@ -3,13 +3,13 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Punica.Bp.EFCore.Extensions;
 using Punica.Bp.EFCore.Middleware;
 
-namespace Punica.Bp.MultiTenancy.EFCore.Filters
+namespace Punica.Bp.MultiTenancy.EFCore.Interceptor
 {
-    public class TenantFilter : IEntityInterceptor
+    public class TenantInterceptor : IEntityInterceptor
     {
         private readonly ITenantContext _tenantContext;
 
-        public TenantFilter(ITenantContext tenantContext)
+        public TenantInterceptor(ITenantContext tenantContext)
         {
             _tenantContext = tenantContext;
         }

@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Punica.Bp.Ddd.EFCore;
+﻿using Punica.Bp.Ddd.EFCore;
 using Sample.Domain.Aggregates.Orders;
 
 namespace Sample.Infrastructure.Repositories

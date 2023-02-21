@@ -4,14 +4,14 @@ using Punica.Bp.Core;
 using Punica.Bp.EFCore.Extensions;
 using Punica.Bp.EFCore.Middleware;
 
-namespace Punica.Bp.Auditing.EFCore.Filters
+namespace Punica.Bp.Auditing.EFCore.Interceptors
 {
-    public class AddedFilter : IEntityInterceptor
+    public class EntityAddedInterceptor : IEntityInterceptor
     {
         private readonly IUserContext _userContext;
         private readonly IDateTime _dateTime;
 
-        public AddedFilter(IUserContext userContext, IDateTime dateTime)
+        public EntityAddedInterceptor(IUserContext userContext, IDateTime dateTime)
         {
             _userContext = userContext;
             _dateTime = dateTime;

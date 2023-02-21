@@ -1,4 +1,4 @@
-﻿namespace Punica.Bp.Ddd.EFCore.Filters.Events
+﻿namespace Punica.Bp.Ddd.EFCore.Interceptors.Events
 {
     public interface IEventTriggerCache
     {

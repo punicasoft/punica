@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Punica.Bp.EFCore.Middleware;
-using System.Linq.Expressions;
+using Punica.Bp.EFCore.Extensions;
 
 namespace Punica.Bp.Auditing.EFCore.Configurations
 {
@@ -39,7 +39,6 @@ namespace Punica.Bp.Auditing.EFCore.Configurations
                     .HasColumnName(nameof(IModifiedBy.ModifiedBy));
             }
 
-
             if (type.IsAssignableTo(typeof(IDeletedDate)))
             {
                 builder.Property(nameof(IDeletedDate.DeletedOn))
@@ -60,9 +59,11 @@ namespace Punica.Bp.Auditing.EFCore.Configurations
                     .IsRequired()
                     .HasColumnName(nameof(ISoftDeletable.Deleted));
 
-                Expression<Func<TEntity, bool>> expression = e => !EF.Property<bool>(e, nameof(ISoftDeletable.Deleted));
+                builder.AddQueryFilter<ISoftDeletable>(e =>  e.Deleted == false);
 
-                builder.HasQueryFilter(expression);//TODO fix queries
+                //Expression<Func<TEntity, bool>> expression = e => !EF.Property<bool>(e, nameof(ISoftDeletable.Deleted));
+
+               // builder.HasQueryFilter(expression);//TODO fix queries
             }
 
         }
