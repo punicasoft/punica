@@ -14,6 +14,7 @@
     <ProjectReference Include="..\..\src\Punica.Bp.Auditing.EFCore\Punica.Bp.Auditing.EFCore.csproj" />
     <ProjectReference Include="..\..\src\Punica.Bp.Ddd.EFCore\Punica.Bp.Ddd.EFCore.csproj" />
     <ProjectReference Include="..\..\src\Punica.Bp.MultiTenancy.EFCore\Punica.Bp.MultiTenancy.EFCore.csproj" />
+    <ProjectReference Include="..\Sample.Application\Sample.Application.csproj" />
     <ProjectReference Include="..\Sample.Domain\Sample.Domain.csproj" />
   </ItemGroup>
 

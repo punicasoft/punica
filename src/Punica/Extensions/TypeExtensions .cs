@@ -78,6 +78,12 @@ namespace Punica.Extensions
 
         }
 
+        public static Type? GetImplementedType(this Type type)
+        {
+            if (!type.IsGenericType) return null;
+            return type.GetGenericArguments()[0];
+        }
+
         public static bool IsOpenGeneric(this Type type)
         {
             return type.GetTypeInfo().IsGenericTypeDefinition || type.GetTypeInfo().ContainsGenericParameters;

@@ -11,6 +11,7 @@ using Punica.Bp.EFCore.Middleware;
 using Punica.Bp.MultiTenancy;
 using Punica.Bp.MultiTenancy.EFCore.Configurations;
 using Punica.Bp.MultiTenancy.EFCore.Interceptor;
+using Sample.Application.Orders;
 using Sample.Infrastructure;
 using Sample.Application.Orders.Commands;
 
@@ -50,6 +51,8 @@ builder.Services.AddScoped<IUserContext, UserContext>();
 builder.Services.AddRepositories<OrderDbContext>();
 
 builder.Services.AddScoped<IDateTime, BasicDateTime>();
+
+builder.Services.AddScoped<IOrderQueries, OrderQueries2>();
 
 builder.Services.AddHttpContextAccessor();
 

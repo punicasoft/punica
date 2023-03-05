@@ -33,10 +33,10 @@ namespace Sample.Api.Controllers
             return Ok("success");
         }
 
-        [HttpGet("{orderId}")]
-        public async Task<ActionResult<string>> AddItemToOrder(Guid orderId, [FromHeader(Name = "TenantId")] Guid tenantId)
+        [HttpPost("details")]
+        public async Task<ActionResult<string>> GetOrder(GetOrderQuery query , [FromHeader(Name = "TenantId")] Guid tenantId)
         {
-            var order = await _mediator.Send(new GetOrderQuery(){OrderId = orderId});
+            var order = await _mediator.Send(query);
 
             return Ok(order);
         }
