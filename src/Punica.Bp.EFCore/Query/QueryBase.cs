@@ -12,6 +12,11 @@ namespace Punica.Bp.EFCore.Querying
     {
         private readonly DbContext _dbContext;
         private static readonly MethodInfo WhereMethod = typeof(QueryBase).GetMethod(nameof(Where));
+        private static readonly MethodInfo _stringContainsMethod =
+            typeof(string).GetMethod(nameof(string.Contains), new Type[] { typeof(string) });
+
+        private static readonly MethodInfo _enubarelContainsMethod =
+            typeof(Enumerable).GetMethod(nameof(Enumerable.Contains));
 
         public QueryBase(DbContext dbContext)
         {

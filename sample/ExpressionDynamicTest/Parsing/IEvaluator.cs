@@ -1,0 +1,33 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ExpressionDynamicTest.Parsing
+{
+    public interface IEvaluator
+    {
+        Expression<Func<TResult, T>> GetFilterExpression<TResult,T>(Expression exp);
+        Expression Add(object left, object right);
+        Expression Subtract(object left, object right);
+        Expression Multiply(object left, object right);
+        Expression Divide(object left, object right);
+        Expression Modulo(object left, object right);
+        Expression And(object left, object right);
+        Expression Or(object left, object right);
+        Expression Not(object operand);
+        Expression Equal(object left, object right);
+        Expression NotEqual(object left, object right);
+        Expression GreaterThan(object left, object right);
+        Expression LessThan(object left, object right);
+        Expression GreaterOrEqual(object left, object right);
+        Expression LessOrEqual(object left, object right);
+        Expression Single(Token token);
+        Expression Condition(object condition, object left, object right);
+        Expression Coalesce(object left, object right);
+        Expression Contains(object left, object right);
+        Expression Any(object left, object right);
+    }
+}

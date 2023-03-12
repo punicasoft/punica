@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Punica.Bp.EFCore.Query.Parsing
+namespace ExpressionDynamicTest.Parsing
 {
     public static class TextParser
     {
@@ -17,6 +15,7 @@ namespace Punica.Bp.EFCore.Query.Parsing
             // Evaluate the expression using the shunting-yard algorithm
             Stack<Token> outputQueue = new Stack<Token>();
             Stack<Token> operatorStack = new Stack<Token>();
+
 
             foreach (var token in tokens)
             {
@@ -31,6 +30,16 @@ namespace Punica.Bp.EFCore.Query.Parsing
                     case "==":
                     case "!=":
                     case "!":
+                    case "+":
+                    case "-":
+                    case "/":
+                    case "%":
+                    case "*":
+                    case "?":
+                    case ":":
+                    case "??":
+                    case "in":
+                    case "any":
                         // Pop operators from the stack until a lower-precedence or left-associative operator is found
                         while (operatorStack.Count > 0 &&
                                (GetPrecedence(token.Value) < GetPrecedence(operatorStack.Peek().Value) ||
@@ -64,6 +73,38 @@ namespace Punica.Bp.EFCore.Query.Parsing
                         // Pop the left parenthesis from the stack
                         operatorStack.Pop();
                         break;
+
+                    //case "?":
+                    //    // Push the ternary operator onto the stack
+                    //    operatorStack.Push(token);
+                    //    break;
+
+                    //case ":":
+                    //    // Pop operators from the stack and add them to the output queue until the matching ternary operator is found
+                    //    while (operatorStack.Count > 0 && operatorStack.Peek().Value != "?")
+                    //    {
+                    //        outputQueue.Push(operatorStack.Pop());
+                    //    }
+
+                    //    // If the matching ternary operator was not found, the expression is invalid
+                    //    if (operatorStack.Count == 0)
+                    //    {
+                    //        throw new ArgumentException("Invalid ternary operator expression");
+                    //    }
+
+                    //    // Pop the ternary operator from the stack
+                    //    Token ternaryOperator = operatorStack.Pop();
+
+                    //    outputQueue.Push(ternaryOperator);
+
+                    //    //// Push the true/false expressions onto the output queue
+                    //    //Expression falseExpression = Pop(outputQueue, evaluator);
+                    //    //Expression trueExpression = Pop(outputQueue, evaluator);
+                    //    //outputQueue.Push(new Token("?", TokenType.Operator));
+                    //    //outputQueue.Push(falseExpression);
+                    //    //outputQueue.Push(trueExpression);
+                    //    break;
+
 
                     default:
                         // Push operands onto the output queue
@@ -153,6 +194,58 @@ namespace Punica.Bp.EFCore.Query.Parsing
                         evaluationStack.Push(evaluator.NotEqual(leftOperand9, rightOperand9));
                         break;
 
+                    case "+":
+                        var rightOperand10 = evaluationStack.Pop();
+                        var leftOperand10 = evaluationStack.Pop();
+                        evaluationStack.Push(evaluator.Add(leftOperand10, rightOperand10));
+                        break;
+
+                    case "-":
+                        var rightOperand11 = evaluationStack.Pop();
+                        var leftOperand11 = evaluationStack.Pop();
+                        evaluationStack.Push(evaluator.Subtract(leftOperand11, rightOperand11));
+                        break;
+
+                    case "*":
+                        var rightOperand12 = evaluationStack.Pop();
+                        var leftOperand12 = evaluationStack.Pop();
+                        evaluationStack.Push(evaluator.Multiply(leftOperand12, rightOperand12));
+                        break;
+
+                    case "/":
+                        var rightOperand13 = evaluationStack.Pop();
+                        var leftOperand13 = evaluationStack.Pop();
+                        evaluationStack.Push(evaluator.Divide(leftOperand13, rightOperand13));
+                        break;
+
+                    case "%":
+                        var rightOperand14 = evaluationStack.Pop();
+                        var leftOperand14 = evaluationStack.Pop();
+                        evaluationStack.Push(evaluator.Modulo(leftOperand14, rightOperand14));
+                        break;
+                    case "?":
+                        var ifFalse = evaluationStack.Pop();
+                        var ifTrue = evaluationStack.Pop();
+                        var condition = evaluationStack.Pop();
+                        evaluationStack.Push(evaluator.Condition(condition, ifTrue, ifFalse));
+                        break;
+                    case "??":
+                        var rightOperand15 = evaluationStack.Pop();
+                        var leftOperand15 = evaluationStack.Pop();
+                        evaluationStack.Push(evaluator.Coalesce(leftOperand15, rightOperand15));
+                        break;
+                    case ":":
+                        break;
+                    case "in":
+                        var rightOperand16 = evaluationStack.Pop();
+                        var leftOperand16 = evaluationStack.Pop();
+                        evaluationStack.Push(evaluator.Contains(leftOperand16, rightOperand16));
+                        break;
+                    case "any":
+                        var rightOperand17 = evaluationStack.Pop();
+                        var leftOperand17 = evaluationStack.Pop();
+                        evaluationStack.Push(evaluator.Any(leftOperand17, rightOperand17));
+                        break;
                     default:
                         evaluationStack.Push(token);
                         break;
@@ -228,6 +321,44 @@ namespace Punica.Bp.EFCore.Query.Parsing
                 {
                     tokens.Add(new Token(")", TokenType.Operator));
                 }
+                else if (c == '+')
+                {
+                    tokens.Add(new Token("+", TokenType.Operator));
+                }
+                else if (c == '-')
+                {
+                    tokens.Add(new Token("-", TokenType.Operator));
+                }
+                else if (c == '/')
+                {
+                    tokens.Add(new Token("/", TokenType.Operator));
+                }
+                else if (c == '*')
+                {
+                    tokens.Add(new Token("*", TokenType.Operator));
+                }
+                else if (c == '%')
+                {
+                    tokens.Add(new Token("%", TokenType.Operator));
+                }
+                else if (c == '?' && i + 1 < expression.Length && expression[i + 1] == '?')
+                {
+                    tokens.Add(new Token("??", TokenType.Operator));
+                    i++;
+                }
+                else if (c == '?')
+                {
+                    tokens.Add(new Token("?", TokenType.Operator));
+                }
+                else if (c == ':')
+                {
+                    tokens.Add(new Token(":", TokenType.Operator));
+                }
+                else if (c == 'i' && i + 1 < expression.Length && expression[i + 1] == 'n')
+                {
+                    tokens.Add(new Token("in", TokenType.Operator));
+                    i++;
+                }
                 else
                 {
                     bool number = true;
@@ -240,6 +371,9 @@ namespace Punica.Bp.EFCore.Query.Parsing
                     {
                         number = false;
                     }
+
+                    int dotIndex = -1;
+                    int methodIndex = -1;
 
                     while (j < expression.Length && !char.IsWhiteSpace(expression[j]))
                     {
@@ -261,8 +395,66 @@ namespace Punica.Bp.EFCore.Query.Parsing
                                 real = true;
                             }
                         }
+                        else
+                        {
+                            //Childrens.any('Male' in Gender && 5 > (1+2) ).any()
+                            if (expression[j] == '.')
+                            {
+                                dotIndex = j;
+                            }
+
+                            if (expression[j] == '(')
+                            {
+                                if (dotIndex < 0 || dotIndex + 1 == j)
+                                {
+                                    throw new ArgumentException($"Invalid method syntax detected {expression.Substring(i, j)}");
+                                }
+
+                                methodIndex = j;
+
+                                int  k = j+1;
+                                int depth = 1;
+
+                                while (k < expression.Length && depth > 0)
+                                {
+                                    switch (expression[k])
+                                    {
+                                        case '(':
+                                            depth++;
+                                            break;
+                                        case ')':
+                                            depth--;
+                                            break;
+                                        default:
+                                            break;
+                                    }
+
+                                    k++;
+                                }
+
+                                if (depth != 0)
+                                {
+                                    throw new ArgumentException("Input contains mismatched parentheses.");
+                                }
+
+                                var member = expression.Substring(i, dotIndex - i);
+                                var method = expression.Substring(dotIndex + 1, methodIndex - dotIndex - 1);
+                                var innerExp = expression.Substring(methodIndex + 1, k - methodIndex - 2);
+
+                                tokens.Add(new Token(member, TokenType.Member));
+                                tokens.Add(new Token(method, TokenType.Operator));
+                                tokens.Add(new Token(innerExp, TokenType.String));
+                                i = k;
+                                j = i; //j++ will make j = i+1
+                            }
+                        }
 
                         j++;
+                    }
+
+                    if (i >= expression.Length)
+                    {
+                        continue;
                     }
 
                     var stringVal = expression.Substring(i, j - i);
@@ -276,14 +468,25 @@ namespace Punica.Bp.EFCore.Query.Parsing
                     {
                         type = TokenType.String;
                     }
+                    else if (stringVal.Equals("true", StringComparison.Ordinal) || stringVal.Equals("false", StringComparison.Ordinal))
+                    {
+                        type = TokenType.Boolean;
+                    }
+                    else if (stringVal.Equals("any", StringComparison.Ordinal))
+                    {
+                        type = TokenType.Operator; // remove this may be??
+                    }
+                    else if (stringVal.StartsWith('@'))
+                    {
+                        type = TokenType.Parameter;
+                    }
                     else
                     {
                         type = TokenType.Member;
                     }
 
 
-
-                    tokens.Add(new Token(stringVal.Trim('\''), type));
+                    tokens.Add(new Token(stringVal.Trim('\'').TrimStart('@'), type));
                     i = j - 1;
                 }
             }
@@ -292,129 +495,107 @@ namespace Punica.Bp.EFCore.Query.Parsing
         }
 
 
-        //static int GetPrecedence(string op)
-        //{
-        //    switch (op)
-        //    {
-        //        case "!":
-        //            return 5;
-        //        case "<":
-        //        case "<=":
-        //        case ">":
-        //        case ">=":
-        //            return 4;
-        //        case "==":
-        //        case "!=":
-        //            return 3;
-        //        case "&&":
-        //            return 2;
-        //        case "||":
-        //            return 1;
-        //        default:
-        //            return -1;
-        //    }
-        //}
 
-        private static int GetPrecedence(string op)
+
+        // Based on https://learn.microsoft.com/en-us/cpp/c-language/precedence-and-order-of-evaluation?view=msvc-170
+        // and https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/
+        public static int GetPrecedence(string op)
         {
             switch (op)
             {
-                case "!":
-                    return 6;
-                case "==":
-                case "!=":
-                    return 5;
-                case "<":
-                case "<=":
-                case ">":
-                case ">=":
-                    return 4;
-                case "&&":
-                    return 3;
-                case "||":
-                    return 2;
-                case "+":
-                case "-":
-                    return 1;
-                case "*":
-                case "/":
-                case "%":
-                    return 0;
-                default:
-                    return -1;
-            }
-        }
-
-        public static int GetOperatorPrecedence(string op)
-        {
-            switch (op)
-            {
-
-                // Conditional Operators
-                case "?:":
-                case "??":
-                    return 14;
 
                 // Assignment Operators
                 case "=":
-                    return 13;
+                    return 0;
                 case "+=":
                 case "-=":
-                    return 13;
+                    return 0;
                 case "*=":
                 case "/=":
                 case "%=":
-                    return 13;
+                    return 0;
                 case "&=":
                 case "|=":
                 case "^=":
-                    return 13;
+                    return 0;
                 case "<<=":
                 case ">>=":
-                    return 13;
+                    return 0;
+
+
+                // Conditional Operators
+                case "?":
+                case ":":
+                    return 1;
+
+                // Null-coalescing operator
+                case "??":
+                    return 2;
+
 
                 // Logical Operators
-                case "&&":
-                    return 11;
                 case "||":
-                    return 12;
-                case "!":
-                    return 10;
+                    return 3;
+                case "&&":
+                    return 4;
 
-                //// Type Operators
-                //case "as":
-                //case "is":
-                //    return 7;
+                // Bitwise Operators
+                case "|":
+                    return 5;
+                case "^":
+                    return 6;
+                case "&":
+                    return 7;
 
                 // Equality Operators
                 case "==":
                 case "!=":
-                    return 7;
+                    return 8;
 
                 // Relational Operators
                 case ">":
                 case "<":
                 case ">=":
                 case "<=":
-                    return 6;
+                    return 9;
+
+                // Type Operators
+                case "as":
+                case "is":
+                    return 9;
+
+                // Collection
+                case "in":
+                    return 9;
+
+                // Shift
+                case "<<":
+                case ">>":
+                    return 10;
 
                 // Arithmetic Operators
-                case "^":
-                    return 4;
-                case "*": 
-                case "/":
-                case "%":
-                    return 3;
                 case "+":
                 case "-":
-                    return 2;
+                    return 11;
+                case "*":
+                case "/":
+                case "%":
+                    return 12;
+
+                // Unary Operators
+                case "~":
+                case "!":
+                    return 13;
+
                 case "++":
                 case "--":
-                    return 1;
+                    return 14;
                 case "(":
                 case ")":
-                    return -1;
+                    return -1; // while parentheses has higher precedence this handles differently
 
+                case "any":
+                    return 14;
 
 
                 //// Bitwise Operators
@@ -443,46 +624,59 @@ namespace Punica.Bp.EFCore.Query.Parsing
             }
         }
 
+
         static bool IsLeftAssociative(string op)
         {
             switch (op)
             {
                 case "&&":
                 case "||":
-                    return true;
                 case "==":
                 case "!=":
                 case "<":
                 case "<=":
                 case ">":
                 case ">=":
+                case "*":
+                case "/":
+                case "%":
+                case "+":
+                case "-":
+                case "in":
+                case "any":
+                    return true;
+                case ":":
+                case "??":
+                // case "?":
+                case "=":
+                case "++":
+                case "--":
+                case "!":
                     return false;
                 default:
                     throw new ArgumentException($"Invalid operator: {op}");
             }
         }
 
-    }
 
-    public struct Token
-    {
-        public string Value { get; }
-        public TokenType Type { get; }
+        //static bool IsLeftAssociative(string op)
+        //{
+        //    switch (op)
+        //    {
+        //        case "&&":
+        //        case "||":
+        //            return true;
+        //        case "==":
+        //        case "!=":
+        //        case "<":
+        //        case "<=":
+        //        case ">":
+        //        case ">=":
+        //            return false;
+        //        default:
+        //            throw new ArgumentException($"Invalid operator: {op}");
+        //    }
+        //}
 
-        public Token(string value, TokenType type)
-        {
-            Value = value;
-            Type = type;
-        }
-    }
-
-    public enum TokenType
-    {
-        Unknown,
-        Operator,
-        Member,
-        String,
-        Number,
-        RealNumber,
     }
 }
