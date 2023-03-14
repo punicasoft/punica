@@ -229,13 +229,29 @@ namespace ExpressionDynamicTest.Parsing
 
               
                 var funcType = typeof(Func<,>).MakeGenericType(type, typeof(bool));
-                var e2 = Expression.Lambda(funcType, body, arg2);
+                var e2 = Expression.Lambda(funcType, body[0], arg2);
 
                 return Expression.Call(CachedMethodInfo.AnyMethod(type), e1, e2);
 
             }
 
             throw new NotImplementedException();
+        }
+
+        public Expression New(object right)
+        {
+            if (right is Token t2)
+            {
+                Evaluator evaluator = new Evaluator(_arg, _parameterInstance);
+                var body = TextParser.Evaluate(t2.Value, evaluator);
+
+                Type resultType =null;
+                var newExpression = Expression.New(resultType);
+                return Expression.MemberInit(newExpression, null);
+
+            }
+
+            throw new ArgumentException("invalid operands");
         }
     }
 }

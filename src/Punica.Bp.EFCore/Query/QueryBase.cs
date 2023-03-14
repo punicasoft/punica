@@ -104,6 +104,7 @@ namespace Punica.Bp.EFCore.Querying
                         //      {
                         //          Id = a.Id,
                         //          Status = a.Status,
+                        //          Buyer = new { Name, Email}
                         //          Products = a.Items.Select(i => new
                         //          {
                         //              Id = i.Id,

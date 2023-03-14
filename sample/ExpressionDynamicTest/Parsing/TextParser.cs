@@ -7,7 +7,7 @@ namespace ExpressionDynamicTest.Parsing
 {
     public static class TextParser
     {
-        public static Expression Evaluate(string expression, IEvaluator evaluator)
+        public static Expression[] Evaluate(string expression, IEvaluator evaluator)
         {
             // Convert the expression into a list of tokens
             List<Token> tokens = Tokenize(expression);
@@ -39,7 +39,11 @@ namespace ExpressionDynamicTest.Parsing
                     case ":":
                     case "??":
                     case "in":
-                    case "any":
+                    case "any": // may be take as one type methods
+                    case "bind":
+                    case "select": // may be take as one type methods
+                    case "new":
+                    case ",":
                         // Pop operators from the stack until a lower-precedence or left-associative operator is found
                         while (operatorStack.Count > 0 &&
                                (GetPrecedence(token.Value) < GetPrecedence(operatorStack.Peek().Value) ||
@@ -73,37 +77,27 @@ namespace ExpressionDynamicTest.Parsing
                         // Pop the left parenthesis from the stack
                         operatorStack.Pop();
                         break;
+                    case "{":
+                        // Push left parentheses onto the stack
+                        operatorStack.Push(token);
+                        break;
 
-                    //case "?":
-                    //    // Push the ternary operator onto the stack
-                    //    operatorStack.Push(token);
-                    //    break;
+                    case "}":
+                        // Pop operators from the stack and add them to the output queue until a left parenthesis is found
+                        while (operatorStack.Count > 0 && operatorStack.Peek().Value != "{")
+                        {
+                            outputQueue.Push(operatorStack.Pop());
+                        }
 
-                    //case ":":
-                    //    // Pop operators from the stack and add them to the output queue until the matching ternary operator is found
-                    //    while (operatorStack.Count > 0 && operatorStack.Peek().Value != "?")
-                    //    {
-                    //        outputQueue.Push(operatorStack.Pop());
-                    //    }
+                        // If a left parenthesis was not found, the expression is invalid
+                        if (operatorStack.Count == 0)
+                        {
+                            throw new ArgumentException("Mismatched curly brackets");
+                        }
 
-                    //    // If the matching ternary operator was not found, the expression is invalid
-                    //    if (operatorStack.Count == 0)
-                    //    {
-                    //        throw new ArgumentException("Invalid ternary operator expression");
-                    //    }
-
-                    //    // Pop the ternary operator from the stack
-                    //    Token ternaryOperator = operatorStack.Pop();
-
-                    //    outputQueue.Push(ternaryOperator);
-
-                    //    //// Push the true/false expressions onto the output queue
-                    //    //Expression falseExpression = Pop(outputQueue, evaluator);
-                    //    //Expression trueExpression = Pop(outputQueue, evaluator);
-                    //    //outputQueue.Push(new Token("?", TokenType.Operator));
-                    //    //outputQueue.Push(falseExpression);
-                    //    //outputQueue.Push(trueExpression);
-                    //    break;
+                        // Pop the left parenthesis from the stack
+                        operatorStack.Pop();
+                        break;
 
 
                     default:
@@ -128,13 +122,14 @@ namespace ExpressionDynamicTest.Parsing
             return Pop(outputQueue, evaluator);
         }
 
-        static Expression Pop(Stack<Token> outputQueue, IEvaluator evaluator)
+        static Expression[] Pop(Stack<Token> outputQueue, IEvaluator evaluator)
         {
             Stack<object> evaluationStack = new Stack<object>();
 
             if (outputQueue.Count == 1)
             {
-                return evaluator.Single(outputQueue.Pop());
+                var exp = evaluator.Single(outputQueue.Pop());
+                return new[] { exp };
             }
 
             foreach (var token in outputQueue.Reverse())
@@ -246,6 +241,10 @@ namespace ExpressionDynamicTest.Parsing
                         var leftOperand17 = evaluationStack.Pop();
                         evaluationStack.Push(evaluator.Any(leftOperand17, rightOperand17));
                         break;
+                    case "new":
+                        var rightOperand18 = evaluationStack.Pop();
+                        evaluationStack.Push(evaluator.New(rightOperand18));
+                        break;
                     default:
                         evaluationStack.Push(token);
                         break;
@@ -253,7 +252,15 @@ namespace ExpressionDynamicTest.Parsing
             }
 
             // The final value on the stack is the result of the expression
-            return (Expression)evaluationStack.Pop();
+
+            List<Expression> result = new List<Expression>();
+
+            while (evaluationStack.Count > 0)
+            {
+               result.Add((Expression)evaluationStack.Pop());
+            }
+
+            return result.ToArray();
         }
 
         static List<Token> Tokenize(string expression)
@@ -271,7 +278,11 @@ namespace ExpressionDynamicTest.Parsing
                 }
 
                 // Handle operators
-                if (c == '&' && i + 1 < expression.Length && expression[i + 1] == '&')
+                if (c == ',')
+                {
+                    tokens.Add(new Token(",", TokenType.Operator));
+                }
+                else if (c == '&' && i + 1 < expression.Length && expression[i + 1] == '&')
                 {
                     tokens.Add(new Token("&&", TokenType.Operator));
                     i++;
@@ -321,6 +332,18 @@ namespace ExpressionDynamicTest.Parsing
                 {
                     tokens.Add(new Token(")", TokenType.Operator));
                 }
+
+
+                else if (c == '{')
+                {
+                    tokens.Add(new Token("{", TokenType.Operator));
+                }
+                else if (c == '}')
+                {
+                    tokens.Add(new Token("}", TokenType.Operator));
+                }
+
+
                 else if (c == '+')
                 {
                     tokens.Add(new Token("+", TokenType.Operator));
@@ -358,6 +381,38 @@ namespace ExpressionDynamicTest.Parsing
                 {
                     tokens.Add(new Token("in", TokenType.Operator));
                     i++;
+                }
+                else if (c == '{')
+                {
+                    int j = i + 1;
+
+                    int depth = 1;
+
+                    while (j < expression.Length && depth > 0)
+                    {
+                        switch (expression[j])
+                        {
+                            case '{':
+                                depth++;
+                                break;
+                            case '}':
+                                depth--;
+                                break;
+                            default:
+                                break;
+                        }
+
+                        j++;
+                    }
+
+                    if (depth != 0)
+                    {
+                        throw new ArgumentException("Input contains mismatched parentheses.");
+                    }
+
+                    var innerExp = expression.Substring(i + 1, j - i - 2);
+                    tokens.Add(new Token(innerExp, TokenType.String));
+                    i = j - 1;
                 }
                 else
                 {
@@ -402,8 +457,7 @@ namespace ExpressionDynamicTest.Parsing
                             {
                                 dotIndex = j;
                             }
-
-                            if (expression[j] == '(')
+                            else if (expression[j] == '(')
                             {
                                 if (dotIndex < 0 || dotIndex + 1 == j)
                                 {
@@ -412,7 +466,7 @@ namespace ExpressionDynamicTest.Parsing
 
                                 methodIndex = j;
 
-                                int  k = j+1;
+                                int k = j + 1;
                                 int depth = 1;
 
                                 while (k < expression.Length && depth > 0)
@@ -445,14 +499,15 @@ namespace ExpressionDynamicTest.Parsing
                                 tokens.Add(new Token(method, TokenType.Operator));
                                 tokens.Add(new Token(innerExp, TokenType.String));
                                 i = k;
-                                j = i; //j++ will make j = i+1
+                                j = i - 1; //j++ will make j = i since we want to start where we left off instead original like j= i+1;
                             }
+
                         }
 
                         j++;
                     }
 
-                    if (i >= expression.Length)
+                    if (i >= expression.Length || i == j)
                     {
                         continue;
                     }
@@ -473,6 +528,10 @@ namespace ExpressionDynamicTest.Parsing
                         type = TokenType.Boolean;
                     }
                     else if (stringVal.Equals("any", StringComparison.Ordinal))
+                    {
+                        type = TokenType.Operator; // remove this may be??
+                    }
+                    else if (stringVal.Equals("new", StringComparison.Ordinal))
                     {
                         type = TokenType.Operator; // remove this may be??
                     }
@@ -503,6 +562,10 @@ namespace ExpressionDynamicTest.Parsing
         {
             switch (op)
             {
+
+                // Sequential evaluation
+                case ",":
+                    return -1;
 
                 // Assignment Operators
                 case "=":
@@ -592,9 +655,16 @@ namespace ExpressionDynamicTest.Parsing
                     return 14;
                 case "(":
                 case ")":
-                    return -1; // while parentheses has higher precedence this handles differently
+                    return -2; // while parentheses has higher precedence this handles differently
+
+                case "{":
+                case "}":
+                    return -2; // while parentheses has higher precedence this handles differently
 
                 case "any":
+                case "select":
+                case "new":
+                case "bind":
                     return 14;
 
 
@@ -644,6 +714,8 @@ namespace ExpressionDynamicTest.Parsing
                 case "-":
                 case "in":
                 case "any":
+                case "bind":
+                case ",":
                     return true;
                 case ":":
                 case "??":
@@ -652,6 +724,7 @@ namespace ExpressionDynamicTest.Parsing
                 case "++":
                 case "--":
                 case "!":
+                case "new":
                     return false;
                 default:
                     throw new ArgumentException($"Invalid operator: {op}");

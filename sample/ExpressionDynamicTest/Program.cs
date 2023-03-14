@@ -5,8 +5,10 @@
 
 // Example expression
 
+using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Xml.Linq;
 using ExpressionDynamicTest.Parsing;
 using ExpressionDynamicTest.Parsing.Models;
 
@@ -55,9 +57,7 @@ var person = new Person()
 
 MyMethod(parameters, person);
 
-
-
-
+var sql = "new{Name,Id,Buyer.Name as BuyerName,Buyer.Email, Items.new{Id,ProductName as Name,UnitPrice}}";
 
 
 
@@ -75,17 +75,20 @@ static void MyMethod(Parameters paras, Person person1)
     //string expression = "8 in @Ids";
     //var val = paras.Status.Contains("Old");
 
-    string expression = "Childrens.any('DeMale' in Gender)";
+    //string expression = "Childrens.any('DeMale' in Gender)";
+    //Expression<Func<Person, bool>> val = p => p.Childrens.Any(c => c.Gender.Contains("DeMale"));
+
+   // string expression = "new { Name , Id , Buyer.Name as BuyerName , Buyer.Email , Buyer.(new {Name , Email}) , Items.Select(new {Id,ProductName as Name,UnitPrice})}";
+    //string expression = "new { Name , Id , Buyer.Name , Buyer.Email}";
+    string expression = "{ Name , Id , Buyer.bind(new {Name , Email}) , Email }";
     Expression<Func<Person, bool>> val = p => p.Childrens.Any(c => c.Gender.Contains("DeMale"));
-
-
 
 
 
     // Evaluate the expression and print the result
 
     Evaluator evaluator = new Evaluator(typeof(Person), Expression.Constant(paras));
-    var expression1 = TextParser.Evaluate(expression, evaluator);
+    var expression1 = TextParser.Evaluate(expression, evaluator)[0];
     Console.WriteLine(expression1); // False
 
     var func = evaluator.GetFilterExpression<Person, bool>(expression1).Compile();

@@ -29,5 +29,6 @@ namespace ExpressionDynamicTest.Parsing
         Expression Coalesce(object left, object right);
         Expression Contains(object left, object right);
         Expression Any(object left, object right);
+        Expression New(object right);
     }
 }
