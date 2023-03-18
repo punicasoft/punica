@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Linq.Expressions;
 
-namespace ExpressionDynamicTest.Parsing
+namespace Punica.Linq.Dynamic.Expressions
 {
     [DebuggerDisplay("{Expression}")]
     public class AliasExpression : Expression
@@ -37,11 +37,4 @@ namespace ExpressionDynamicTest.Parsing
             return Expression.ToString();
         }
     }
-
-   
 }
-
-
-
-    
-

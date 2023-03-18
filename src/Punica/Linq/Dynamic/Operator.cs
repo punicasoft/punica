@@ -1,48 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ExpressionDynamicTest.Parsing
+﻿namespace Punica.Linq.Dynamic
 {
-
-    [DebuggerDisplay("{Value}")]
-    public struct Token
-    {
-        public string Value { get; }
-        public TokenType Type { get; }
-        public Operator Operator { get; }
-
-        public Token(string value, TokenType type, Operator @operator)
-        {
-            Value = value;
-            Type = type;
-            Operator = @operator;
-        }
-    }
-
-    public enum TokenType
-    {
-        Unknown,
-        Operator,
-        OpenParen,
-        CloseParen,
-        OpenCurlyParen,
-        CloseCurlyParen,
-        OpenBracket,
-        CloseBracket,
-        Member,
-        String,
-        Number,
-        RealNumber,
-        Boolean,
-        Parameter,
-        Sequence,
-    }
-
-
     public enum Operator
     {
         Unknown,

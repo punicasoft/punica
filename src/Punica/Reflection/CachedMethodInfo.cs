@@ -1,10 +1,15 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace ExpressionDynamicTest.Parsing
+namespace Punica.Reflection
 {
     public static class CachedMethodInfo
     {
-        public static MethodInfo StringContains = typeof(string).GetMethod(nameof(string.Contains), new Type[]{typeof(string)});
+        public static MethodInfo StringContains = typeof(string).GetMethod(nameof(string.Contains), new Type[] { typeof(string) });
 
         private static MethodInfo? _concatMethod;
 
@@ -15,7 +20,7 @@ namespace ExpressionDynamicTest.Parsing
             .MakeGenericMethod(type);
 
         private static MethodInfo? _anyMethod;
-        public static MethodInfo AnyMethod(Type type) =>  (_anyMethod ??= new Func<IEnumerable<object>, Func<object, bool>, bool>(Enumerable.Any).GetMethodInfo().GetGenericMethodDefinition())
+        public static MethodInfo AnyMethod(Type type) => (_anyMethod ??= new Func<IEnumerable<object>, Func<object, bool>, bool>(Enumerable.Any).GetMethodInfo().GetGenericMethodDefinition())
             .MakeGenericMethod(type);
     }
 }

@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Xml.Linq;
 using ExpressionDynamicTest.Parsing;
 using ExpressionDynamicTest.Parsing.Models;
+using Punica.Linq.Dynamic;
 
 //string expression = "!(5 > 3 && 2 <= 4 || 1 != 1 ) && 5 > 3";
 //string expression = "(5 > 3 && 2 <= 4 || 1 != 1 ) && 5 > 3";

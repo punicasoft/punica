@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+﻿using System.ComponentModel;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ExpressionDynamicTest.Parsing
+namespace Punica.Linq.Dynamic
 {
     public readonly struct Operands
     {
@@ -59,7 +54,7 @@ namespace ExpressionDynamicTest.Parsing
                 var e1 = GetProperty(left.Value, arg);
                 return new Operands(e1, right);
             }
-            else if(left.Type == TokenType.Parameter)
+            else if (left.Type == TokenType.Parameter)
             {
                 var e1 = Expression.PropertyOrField(paras, left.Value);
                 return new Operands(e1, right);
@@ -194,7 +189,7 @@ namespace ExpressionDynamicTest.Parsing
 
             if (type == typeof(double))
             {
-               return double.Parse(input);
+                return double.Parse(input);
             }
 
             if (type == typeof(bool))

@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq.Expressions;
 
-namespace ExpressionDynamicTest.Parsing
+namespace Punica.Linq.Dynamic
 {
     public interface IEvaluator
     {
-        Expression<Func<TResult, T>> GetFilterExpression<TResult,T>(Expression exp);
+        Expression<Func<TResult, T>> GetFilterExpression<TResult, T>(Expression exp);
         Expression Add(object left, object right);
         Expression Subtract(object left, object right);
         Expression Multiply(object left, object right);

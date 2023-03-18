@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿
 using System.Linq.Expressions;
-using System.Runtime.InteropServices.JavaScript;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace ExpressionDynamicTest.Parsing
+namespace Punica.Linq.Dynamic
 {
     public static class TextParser
     {
-        private static Token[] keys = new[]
+        private static readonly Token[] Keys = new[]
         {
             new Token("as", TokenType.Operator, Operator.As),
             new Token("true", TokenType.Boolean, Operator.Unknown),
@@ -550,7 +546,7 @@ namespace ExpressionDynamicTest.Parsing
                 }
                 else if (Match(i, expression, out var index))
                 {
-                    var token = keys[index];
+                    var token = Keys[index];
                     tokens.Add(token);
                     i = i + token.Value.Length - 1;
                 }
@@ -704,9 +700,9 @@ namespace ExpressionDynamicTest.Parsing
 
         static bool Match(int i, string expression, out int index)
         {
-            for (index = 0; index < keys.Length; index++)
+            for (index = 0; index < Keys.Length; index++)
             {
-                var token = keys[index];
+                var token = Keys[index];
                 var value = token.Value;
                 int j;
                 for (j = 0; j < value.Length; j++)

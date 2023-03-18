@@ -1,29 +1,23 @@
-﻿using ExpressionDynamicTest.Parsing.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Punica.Dynamic;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Security.AccessControl;
-using System.Text;
-using System.Threading.Tasks;
-using Punica.Dynamic;
+using Punica.Linq.Dynamic.Expressions;
+using Punica.Reflection;
 
-namespace ExpressionDynamicTest.Parsing
+namespace Punica.Linq.Dynamic
 {
     public class Evaluator : IEvaluator
     {
-       
+
         private readonly Expression _parameterInstance;
 
         // private ParaObject _paras;
         private readonly ParameterExpression _arg;
-        
+
 
 
         public Evaluator(Type type, Expression parameterInstance)
         {
-           
+
             _parameterInstance = parameterInstance;
             // _paras = new ParaObject();
 
@@ -184,7 +178,7 @@ namespace ExpressionDynamicTest.Parsing
             {
                 ex = e1;
             }
-            else if (condition is Token t1) 
+            else if (condition is Token t1)
             {
                 ex = Single(t1);
             }
@@ -213,7 +207,7 @@ namespace ExpressionDynamicTest.Parsing
             }
             else
             {
-               return Expression.Call(CachedMethodInfo.EnumerableContainsMethod(operands.Left.Type), operands.Right, operands.Left);
+                return Expression.Call(CachedMethodInfo.EnumerableContainsMethod(operands.Left.Type), operands.Right, operands.Left);
             }
 
             return null;
@@ -234,7 +228,7 @@ namespace ExpressionDynamicTest.Parsing
 
                 var body = TextParser.Evaluate(t2.Value, evaluator);
 
-              
+
                 var funcType = typeof(Func<,>).MakeGenericType(type, typeof(bool));
                 var e2 = Expression.Lambda(funcType, body[0], arg2);
 
@@ -252,7 +246,7 @@ namespace ExpressionDynamicTest.Parsing
                 Evaluator evaluator = new Evaluator(_arg, _parameterInstance);
                 var body = TextParser.Evaluate(t2.Value, evaluator);
 
-               return ParseNew(body);
+                return ParseNew(body);
 
             }
 
@@ -360,7 +354,7 @@ namespace ExpressionDynamicTest.Parsing
 
             foreach (var member in members)
             {
-                bindings.Add(Expression.Bind(member, bindkeys[member.Name] ));
+                bindings.Add(Expression.Bind(member, bindkeys[member.Name]));
             }
 
             return Expression.MemberInit(Expression.New(type), bindings);
@@ -371,7 +365,7 @@ namespace ExpressionDynamicTest.Parsing
             switch (expression.NodeType)
             {
                 case ExpressionType.MemberAccess:
-                    var memberExpression =(MemberExpression)expression;
+                    var memberExpression = (MemberExpression)expression;
                     return GetName(memberExpression.Expression) + memberExpression.Member.Name;
                     break;
                 case ExpressionType.Parameter:
