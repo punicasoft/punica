@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
+using Punica.Dynamic;
 
 namespace ExpressionDynamicTest.Parsing
 {
@@ -43,6 +44,12 @@ namespace ExpressionDynamicTest.Parsing
 
         public Expression<Func<bool>> GetFilterExpression(Expression exp)
         {
+            return Expression.Lambda<Func<bool>>(exp);
+        }
+
+        public Expression GetCompiledExpression(Expression exp)
+        {
+
             return Expression.Lambda<Func<bool>>(exp);
         }
 
@@ -245,13 +252,141 @@ namespace ExpressionDynamicTest.Parsing
                 Evaluator evaluator = new Evaluator(_arg, _parameterInstance);
                 var body = TextParser.Evaluate(t2.Value, evaluator);
 
-                Type resultType =null;
-                var newExpression = Expression.New(resultType);
-                return Expression.MemberInit(newExpression, null);
+               return ParseNew(body);
 
             }
 
             throw new ArgumentException("invalid operands");
+        }
+
+        public Expression Dot(object left, object right)
+        {
+            if (left is Token t1 && right is Token t2)
+            {
+                var e1 = Expression.PropertyOrField(_arg, t1.Value);
+                return Expression.PropertyOrField(e1, t2.Value);
+            }
+
+
+            //if (left is Expression e11 && right is Token t22)
+            //{
+            //   return Expression.PropertyOrField(e1, t2.Value);
+            //}
+
+            return null;
+        }
+
+        public Expression Call(object left, object method, object right)
+        {
+            if (left is Token t1 && right is Token t2)
+            {
+                var e1 = Expression.PropertyOrField(_arg, t1.Value);
+
+                if (Operands.IsCollectionOrList(e1.Type))
+                {
+                    var type = Operands.GetImplementedType(e1.Type);
+
+                    ParameterExpression arg2 = Expression.Parameter(type, "arg2");
+                    Evaluator evaluator = new Evaluator(arg2, _parameterInstance);
+
+                    var body = TextParser.Evaluate(t2.Value, evaluator);
+                    // call the method
+                }
+                else
+                {
+                    ParameterExpression arg2 = Expression.Parameter(e1.Type, "arg2");
+                    Evaluator evaluator = new Evaluator(arg2, _parameterInstance);
+
+                    var body = TextParser.Evaluate(t2.Value, evaluator);
+
+                    //TODO find the method find the expression
+                    // return Expression.Call(CachedMethodInfo.EnumerableContainsMethod(e1.Type), right);
+                }
+            }
+
+            //return Expression.Call(CachedMethodInfo.EnumerableContainsMethod(operands.Left.Type), operands.Right, operands.Left);
+
+            //if (left is Token t1 && t1.Type == TokenType.Member)
+            //{
+            //    var e1 = Operands.GetProperty(t1.Value, _arg);
+            //    var type = Operands.GetImplementedType(e1.Type);
+            //    ParameterExpression arg2 = Expression.Parameter(type, "arg2");
+
+            //    Evaluator evaluator = new Evaluator(arg2, _parameterInstance);
+
+            //    var t2 = (Token)right;
+
+            //    var body = TextParser.Evaluate(t2.Value, evaluator);
+
+
+            //    var funcType = typeof(Func<,>).MakeGenericType(type, typeof(bool));
+            //    var e2 = Expression.Lambda(funcType, body[0], arg2);
+
+            //    return Expression.Call(CachedMethodInfo.AnyMethod(type), e1, e2);
+
+            //}
+
+
+            return null;
+        }
+
+        public Expression As(object left, object right)
+        {
+            if (left is Expression e1 && right is Token t2)
+            {
+                return new AliasExpression(e1, t2.Value);
+            }
+
+            throw new ArgumentException("invalid operands");
+        }
+
+
+        private Expression ParseNew(Expression[] expressions)
+        {
+            var properties = new List<AnonymousProperty>();
+            var bindkeys = new Dictionary<string, Expression>();
+
+            foreach (var expression in expressions)
+            {
+                var name = GetName(expression);
+                bindkeys[name] = expression;
+                properties.Add(new AnonymousProperty(name, expression.Type));
+            }
+
+            var type = AnonymousTypeFactory.CreateType(properties);
+
+            var bindings = new List<MemberBinding>();
+            var members = type.GetProperties();
+
+            foreach (var member in members)
+            {
+                bindings.Add(Expression.Bind(member, bindkeys[member.Name] ));
+            }
+
+            return Expression.MemberInit(Expression.New(type), bindings);
+        }
+
+        private string GetName(Expression expression)
+        {
+            switch (expression.NodeType)
+            {
+                case ExpressionType.MemberAccess:
+                    var memberExpression =(MemberExpression)expression;
+                    return GetName(memberExpression.Expression) + memberExpression.Member.Name;
+                    break;
+                case ExpressionType.Parameter:
+                    return "";
+                    break;
+                case ExpressionType.Extension:
+                    if (expression is AliasExpression e)
+                    {
+                        return e.Alias;
+                    }
+                    throw new ArgumentException("Invalid Expression");
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 }

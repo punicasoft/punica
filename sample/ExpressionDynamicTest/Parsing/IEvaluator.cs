@@ -30,5 +30,8 @@ namespace ExpressionDynamicTest.Parsing
         Expression Contains(object left, object right);
         Expression Any(object left, object right);
         Expression New(object right);
+        Expression Dot(object left, object right);
+        Expression Call(object left, object method, object right);
+        Expression As(object left, object right);
     }
 }
