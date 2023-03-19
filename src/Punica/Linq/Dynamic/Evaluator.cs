@@ -1,7 +1,8 @@
 ﻿using Punica.Dynamic;
 using System.Linq.Expressions;
-using Punica.Linq.Dynamic.Expressions;
+using Punica.Extensions;
 using Punica.Reflection;
+using Punica.Linq.Expressions;
 
 namespace Punica.Linq.Dynamic
 {
@@ -65,7 +66,7 @@ namespace Punica.Linq.Dynamic
             if (operands.Left.Type == typeof(string))
             {
                 //var concatMethod = typeof(string).GetMethod(nameof(string.Concat), new Type[] { typeof(string), typeof(string) });
-                return Expression.Call(CachedMethodInfo.ConcatMethod, operands.Left, operands.Right);
+                return Expression.Call(CachedMethodInfo.Concat, operands.Left, operands.Right);
             }
 
             return Expression.Add(operands.Left, operands.Right);
@@ -203,11 +204,11 @@ namespace Punica.Linq.Dynamic
 
             if (operands.Right.Type == typeof(string))
             {
-                return Expression.Call(operands.Right, CachedMethodInfo.StringContains, operands.Left);
+                return Expression.Call(operands.Right, CachedMethodInfo.Contains, operands.Left);
             }
             else
             {
-                return Expression.Call(CachedMethodInfo.EnumerableContainsMethod(operands.Left.Type), operands.Right, operands.Left);
+                return Expression.Call(CachedMethodInfo.Enumerable_Contains(operands.Left.Type), operands.Right, operands.Left);
             }
 
             return null;
@@ -219,7 +220,7 @@ namespace Punica.Linq.Dynamic
             if (left is Token t1 && t1.Type == TokenType.Member)
             {
                 var e1 = Operands.GetProperty(t1.Value, _arg);
-                var type = Operands.GetImplementedType(e1.Type);
+                var type = e1.Type.GetElementOrGenericArgType();
                 ParameterExpression arg2 = Expression.Parameter(type, "arg2");
 
                 Evaluator evaluator = new Evaluator(arg2, _parameterInstance);
@@ -232,7 +233,7 @@ namespace Punica.Linq.Dynamic
                 var funcType = typeof(Func<,>).MakeGenericType(type, typeof(bool));
                 var e2 = Expression.Lambda(funcType, body[0], arg2);
 
-                return Expression.Call(CachedMethodInfo.AnyMethod(type), e1, e2);
+                return Expression.Call(CachedMethodInfo.Any(type), e1, e2);
 
             }
 
@@ -244,9 +245,29 @@ namespace Punica.Linq.Dynamic
             if (right is Token t2)
             {
                 Evaluator evaluator = new Evaluator(_arg, _parameterInstance);
-                var body = TextParser.Evaluate(t2.Value, evaluator);
+                var expressions = TextParser.Evaluate(t2.Value, evaluator);
 
-                return ParseNew(body);
+                var properties = new List<AnonymousProperty>();
+                var bindkeys = new Dictionary<string, Expression>();
+
+                foreach (var expression in expressions)
+                {
+                    var name = GetName(expression);
+                    bindkeys[name] = expression;
+                    properties.Add(new AnonymousProperty(name, expression.Type));
+                }
+
+                var type = AnonymousTypeFactory.CreateType(properties);
+
+                var bindings = new List<MemberBinding>();
+                var members = type.GetProperties();
+
+                foreach (var member in members)
+                {
+                    bindings.Add(Expression.Bind(member, bindkeys[member.Name]));
+                }
+
+                return Expression.MemberInit(Expression.New(type), bindings);
 
             }
 
@@ -261,13 +282,7 @@ namespace Punica.Linq.Dynamic
                 return Expression.PropertyOrField(e1, t2.Value);
             }
 
-
-            //if (left is Expression e11 && right is Token t22)
-            //{
-            //   return Expression.PropertyOrField(e1, t2.Value);
-            //}
-
-            return null;
+            throw new ArgumentException("invalid objects");
         }
 
         public Expression Call(object left, object method, object right)
@@ -276,22 +291,67 @@ namespace Punica.Linq.Dynamic
             {
                 var e1 = Expression.PropertyOrField(_arg, t1.Value);
 
-                if (Operands.IsCollectionOrList(e1.Type))
+                if (e1.Type.IsCollection(out var type))
                 {
-                    var type = Operands.GetImplementedType(e1.Type);
-
                     ParameterExpression arg2 = Expression.Parameter(type, "arg2");
                     Evaluator evaluator = new Evaluator(arg2, _parameterInstance);
 
-                    var body = TextParser.Evaluate(t2.Value, evaluator);
+                    var expressions = TextParser.Evaluate(t2.Value, evaluator);
                     // call the method
+                    var methodT = (Token)method;
+                    LambdaExpression e2;
+                    switch (methodT.Value)
+                    {
+
+                        case "Any":
+                            if (expressions.Length != 1)
+                            {
+                                throw new ArgumentException($"Invalid expression for Any {t2.Value}");
+                            }
+
+                            var anyType = typeof(Func<,>).MakeGenericType(type, typeof(bool));
+                            e2 = Expression.Lambda(anyType, expressions[0], arg2);
+
+                            return Expression.Call(CachedMethodInfo.Any(type), e1, e2);
+                        case "Contains":
+                            if (expressions.Length != 1)
+                            {
+                                throw new ArgumentException($"Invalid expression for Contains {t2.Value}");
+                            }
+
+                            var containType = typeof(Func<,>).MakeGenericType(type, typeof(bool));
+                            e2 = Expression.Lambda(containType, expressions[0], arg2);
+                            return Expression.Call(CachedMethodInfo.Enumerable_Contains(type), e1, e2);
+
+                        case "Select":
+                            if (expressions.Length != 1)
+                            {
+                                throw new ArgumentException($"Invalid expression for Select {t2.Value}");
+                            }
+                            var selectType = typeof(Func<,>).MakeGenericType(type, expressions[0].Type);
+                            e2 = Expression.Lambda(selectType, expressions[0], arg2);
+                            return Expression.Call(CachedMethodInfo.Select(type, expressions[0].Type), e1, e2);
+
+                        case "ToList":
+                            return Expression.Call(CachedMethodInfo.ToList(type), e1); //TODO check this validity since there is no right side
+                        default:
+                            throw new ArgumentException($"Invalid method {methodT.Value}");
+                    }
+
                 }
                 else
                 {
                     ParameterExpression arg2 = Expression.Parameter(e1.Type, "arg2");
                     Evaluator evaluator = new Evaluator(arg2, _parameterInstance);
 
-                    var body = TextParser.Evaluate(t2.Value, evaluator);
+                    var expressions = TextParser.Evaluate(t2.Value, evaluator);
+
+                    var methodT = (Token)method;
+                    switch (methodT.Value)
+                    {
+                        default:
+                            throw new ArgumentException($"Invalid method {methodT.Value}");
+                    }
 
                     //TODO find the method find the expression
                     // return Expression.Call(CachedMethodInfo.EnumerableContainsMethod(e1.Type), right);
@@ -334,31 +394,6 @@ namespace Punica.Linq.Dynamic
             throw new ArgumentException("invalid operands");
         }
 
-
-        private Expression ParseNew(Expression[] expressions)
-        {
-            var properties = new List<AnonymousProperty>();
-            var bindkeys = new Dictionary<string, Expression>();
-
-            foreach (var expression in expressions)
-            {
-                var name = GetName(expression);
-                bindkeys[name] = expression;
-                properties.Add(new AnonymousProperty(name, expression.Type));
-            }
-
-            var type = AnonymousTypeFactory.CreateType(properties);
-
-            var bindings = new List<MemberBinding>();
-            var members = type.GetProperties();
-
-            foreach (var member in members)
-            {
-                bindings.Add(Expression.Bind(member, bindkeys[member.Name]));
-            }
-
-            return Expression.MemberInit(Expression.New(type), bindings);
-        }
 
         private string GetName(Expression expression)
         {

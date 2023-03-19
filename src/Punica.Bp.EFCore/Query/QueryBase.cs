@@ -5,6 +5,7 @@ using Punica.Extensions;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using TypeExtensions = Punica.Extensions.TypeExtensions;
 
 namespace Punica.Bp.EFCore.Querying
 {
@@ -104,7 +105,7 @@ namespace Punica.Bp.EFCore.Querying
                         //      {
                         //          Id = a.Id,
                         //          Status = a.Status,
-                        //          Buyer = new { Name, Email}
+                        //          Buyer = new { a.Buyer.Name, Email}
                         //          Products = a.Items.Select(i => new
                         //          {
                         //              Id = i.Id,
@@ -114,7 +115,7 @@ namespace Punica.Bp.EFCore.Querying
                         //      });
 
                         // in List<Products> extract the type of Generic Argument typeof(Product) 
-                        var type = prop.PropertyType.GetImplementedType();
+                        var type = TypeExtensions.GetElementOrGenericArgType(prop.PropertyType);
 
                         var columns = name.Substring(index + 1).Split(",");
 
@@ -122,7 +123,7 @@ namespace Punica.Bp.EFCore.Querying
                         var expression = Expression.PropertyOrField(arg, field.Name);
 
                         //   // type of Items from List<Items> 
-                        var sourceType = expression.Type.GetImplementedType();
+                        var sourceType = TypeExtensions.GetElementOrGenericArgType(expression.Type);
                         
 
                         // Function<Item, Product>
@@ -196,7 +197,7 @@ namespace Punica.Bp.EFCore.Querying
 
                     if (IsCollectionOrList(property.PropertyType))
                     {
-                        var implementedType = property.PropertyType.GetImplementedType();
+                        var implementedType = TypeExtensions.GetElementOrGenericArgType(property.PropertyType);
                         var requesteType = GetType(implementedType, parts[1].Split(",").ToList());
                         var listType = typeof(List<>).MakeGenericType(requesteType);
                         properties.Add(new AnonymousProperty(field.Alias, listType));

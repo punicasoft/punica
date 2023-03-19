@@ -90,9 +90,9 @@ static void MyMethod(Parameters paras, Person person1)
     // string expression = "new { Name , Id , Buyer.Name as BuyerName , Buyer.Email , Buyer.(new {Name , Email}) , Items.Select(new {Id,ProductName as Name,UnitPrice})}";
     //string expression = "new { FirstName , Account = new {Name + 's', Balance} , IsMale }";
     // string expression = "FirstName , Account = new {Name + 's', Balance} , IsMale ";
-    //string expression = "Account = new {Name + 's', Balance}"; //TODO add = and as support
+    string expression = "Account = new {Account.Name + 's'  as 'Id', Account.Balance}"; //TODO add = support, also support levels like outer one could be in or assign value can be in
     //string expression = "Account.Bind(new {Name + 's', Balance})";
-    string expression = "new {Name + 's' as 'Id', Balance}";
+    //string expression = "new {Name + 's' as 'Id', Balance}";
     // string expression = "new { FirstName , LastName , Account.Name , Account.Balance}";
     // string expression = " FirstName , Account.Bind(Name + 's', Balance) , IsMale ";
     Expression<Func<Person, bool>> val = p => p.Childrens.Any(c => c.Gender.Contains("DeMale"));
@@ -100,12 +100,12 @@ static void MyMethod(Parameters paras, Person person1)
 
     // Evaluate the expression and print the result
 
-    Evaluator evaluator = new Evaluator(typeof(Account), Expression.Constant(paras));
+    Evaluator evaluator = new Evaluator(typeof(Person), Expression.Constant(paras));
     var expression1 = TextParser.Evaluate(expression, evaluator)[0];
     Console.WriteLine(expression1); // False
 
-    var func = evaluator.GetFilterExpression<Account, object>(expression1).Compile();
-    Console.WriteLine(func(person1.Account) + "  " + val.Compile()(person1));
+    var func = evaluator.GetFilterExpression<Person, object>(expression1).Compile();
+    Console.WriteLine(func(person1) + "  " + val.Compile()(person1));
 
 }
 

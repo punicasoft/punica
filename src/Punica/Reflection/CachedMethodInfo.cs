@@ -1,26 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 
 namespace Punica.Reflection
 {
     public static class CachedMethodInfo
     {
-        public static MethodInfo StringContains = typeof(string).GetMethod(nameof(string.Contains), new Type[] { typeof(string) });
+        private static MethodInfo? _contains;
 
-        private static MethodInfo? _concatMethod;
+        public static MethodInfo Contains => _contains ??= typeof(string).GetMethod(nameof(string.Contains), new Type[] { typeof(string) })!;
 
-        public static MethodInfo ConcatMethod => _concatMethod ??= new Func<string?, string?, string>(string.Concat).GetMethodInfo();
+        private static MethodInfo? _concat;
 
-        private static MethodInfo? _enumerableContainsMethod;
-        public static MethodInfo EnumerableContainsMethod(Type type) => (_enumerableContainsMethod ??= new Func<IEnumerable<object>, object, bool>(Enumerable.Contains).GetMethodInfo().GetGenericMethodDefinition())
+        public static MethodInfo Concat => _concat ??= new Func<string?, string?, string>(string.Concat).GetMethodInfo();
+
+        private static MethodInfo? _enumerableContains;
+
+        public static MethodInfo Enumerable_Contains(Type type) => (_enumerableContains ??= new Func<IEnumerable<object>, object, bool>(Enumerable.Contains).GetMethodInfo().GetGenericMethodDefinition())
             .MakeGenericMethod(type);
 
-        private static MethodInfo? _anyMethod;
-        public static MethodInfo AnyMethod(Type type) => (_anyMethod ??= new Func<IEnumerable<object>, Func<object, bool>, bool>(Enumerable.Any).GetMethodInfo().GetGenericMethodDefinition())
+        private static MethodInfo? _any;
+
+        public static MethodInfo Any(Type type) => (_any ??= new Func<IEnumerable<object>, Func<object, bool>, bool>(Enumerable.Any).GetMethodInfo().GetGenericMethodDefinition())
             .MakeGenericMethod(type);
+
+        private static MethodInfo? _select;
+
+        public static MethodInfo Select(Type source, Type result) => (_select ??= new Func<IEnumerable<object>, Func<object, object>, IEnumerable<object>>(Enumerable.Select).GetMethodInfo().GetGenericMethodDefinition())
+            .MakeGenericMethod(source, result);
+
+        private static MethodInfo? _toList;
+
+        public static MethodInfo ToList(Type type) => _toList ??= (typeof(Enumerable).GetMethod(nameof(Enumerable.ToList))!)
+            .MakeGenericMethod(type);
+
+       
     }
 }

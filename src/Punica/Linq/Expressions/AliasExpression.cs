@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Linq.Expressions;
 
-namespace Punica.Linq.Dynamic.Expressions
+namespace Punica.Linq.Expressions
 {
     [DebuggerDisplay("{Expression}")]
     public class AliasExpression : Expression

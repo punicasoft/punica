@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Linq.Expressions;
+using Punica.Extensions;
 
 namespace Punica.Linq.Dynamic
 {
@@ -172,9 +173,9 @@ namespace Punica.Linq.Dynamic
 
         public static object? ParseString(Type type, string input)
         {
-            if (IsCollectionOrList(type))
+            if (type.IsCollection())
             {
-                type = GetImplementedType(type);
+                type = type.GetElementType();
             }
 
             if (type == typeof(string))
@@ -217,29 +218,7 @@ namespace Punica.Linq.Dynamic
         }
 
 
-        public static bool IsCollectionOrList(Type type)
-        {
-            if (type.IsGenericType)
-            {
-                Type genericTypeDefinition = type.GetGenericTypeDefinition();
-                if (genericTypeDefinition == typeof(List<>) || genericTypeDefinition == typeof(IList<>)
-                                                            || genericTypeDefinition == typeof(ICollection<>))
-                {
-                    return true;
-                }
-            }
-
-            return type.IsArray;
-        }
-
-        public static Type? GetImplementedType(Type type)
-        {
-            if (type.IsArray) return type.GetElementType();
-
-            if (type.IsGenericType) return type.GetGenericArguments()[0];
-
-            return null;
-        }
+       
 
     }
 }
