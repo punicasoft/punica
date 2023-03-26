@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Punica.Extensions.DependencyInjection
 {
+    //TODO: use type extensions
     public static class AssemblyScannerExtensions
     {
         public static void RegisterServices(this IServiceCollection services, Type targetType, Assembly[] assemblies,

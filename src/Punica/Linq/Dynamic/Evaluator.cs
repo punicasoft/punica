@@ -16,7 +16,7 @@ namespace Punica.Linq.Dynamic
 
 
 
-        public Evaluator(Type type, Expression parameterInstance)
+        public Evaluator(Type type, Expression? parameterInstance)
         {
 
             _parameterInstance = parameterInstance;
@@ -287,9 +287,30 @@ namespace Punica.Linq.Dynamic
 
         public Expression Call(object left, object method, object right)
         {
-            if (left is Token t1 && right is Token t2)
+            if (right is Token t2)
             {
-                var e1 = Expression.PropertyOrField(_arg, t1.Value);
+                Expression e1;
+
+                if (left is Token t1)
+                {
+                    if (t1.Value.Equals("this", StringComparison.OrdinalIgnoreCase))
+                    {
+                        e1 = _arg;
+                    }
+                    else
+                    {
+                        e1 = Expression.PropertyOrField(_arg, t1.Value);
+                    }
+                   
+                }
+                else if (left is Expression exp)
+                {
+                    e1 = exp;
+                }
+                else
+                {
+                    throw new ArgumentException($"Invalid method type for left operand {left.GetType()}");
+                }
 
                 if (e1.Type.IsCollection(out var type))
                 {
@@ -330,7 +351,7 @@ namespace Punica.Linq.Dynamic
                             }
                             var selectType = typeof(Func<,>).MakeGenericType(type, expressions[0].Type);
                             e2 = Expression.Lambda(selectType, expressions[0], arg2);
-                            return Expression.Call(CachedMethodInfo.Select(type, expressions[0].Type), e1, e2);
+                            return Expression.Call(e1.Type.Select(type, expressions[0].Type), e1, e2);
 
                         case "ToList":
                             return Expression.Call(CachedMethodInfo.ToList(type), e1); //TODO check this validity since there is no right side
@@ -358,30 +379,7 @@ namespace Punica.Linq.Dynamic
                 }
             }
 
-            //return Expression.Call(CachedMethodInfo.EnumerableContainsMethod(operands.Left.Type), operands.Right, operands.Left);
-
-            //if (left is Token t1 && t1.Type == TokenType.Member)
-            //{
-            //    var e1 = Operands.GetProperty(t1.Value, _arg);
-            //    var type = Operands.GetImplementedType(e1.Type);
-            //    ParameterExpression arg2 = Expression.Parameter(type, "arg2");
-
-            //    Evaluator evaluator = new Evaluator(arg2, _parameterInstance);
-
-            //    var t2 = (Token)right;
-
-            //    var body = TextParser.Evaluate(t2.Value, evaluator);
-
-
-            //    var funcType = typeof(Func<,>).MakeGenericType(type, typeof(bool));
-            //    var e2 = Expression.Lambda(funcType, body[0], arg2);
-
-            //    return Expression.Call(CachedMethodInfo.AnyMethod(type), e1, e2);
-
-            //}
-
-
-            return null;
+            throw new ArgumentException($"Invalid call");
         }
 
         public Expression As(object left, object right)
@@ -389,6 +387,12 @@ namespace Punica.Linq.Dynamic
             if (left is Expression e1 && right is Token t2)
             {
                 return new AliasExpression(e1, t2.Value);
+            }
+            else if (left is Token t1 && right is Token tt2)
+            {
+                var member = Expression.PropertyOrField(_arg, t1.Value);
+
+                return new AliasExpression(member, tt2.Value);
             }
 
             throw new ArgumentException("invalid operands");

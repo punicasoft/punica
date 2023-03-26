@@ -15,7 +15,7 @@ using Punica.Linq.Dynamic;
 
 //string expression = "!(5 > 3 && 2 <= 4 || 1 != 1 ) && 5 > 3";
 //string expression = "(5 > 3 && 2 <= 4 || 1 != 1 ) && 5 > 3";
-//bool val = (5 > 3 && 2 <= 4 || 1 != 1) && 5 > 3;
+bool val = (5 > 3 && 2 <= 4 || 1 != 1) && 5 > 3;
 
 var parameters = new Parameters() { Description = "cumon rayheyiar" };
 parameters.Status = new List<string>() { "New", "Old", "InProgress" };
@@ -90,7 +90,9 @@ static void MyMethod(Parameters paras, Person person1)
     // string expression = "new { Name , Id , Buyer.Name as BuyerName , Buyer.Email , Buyer.(new {Name , Email}) , Items.Select(new {Id,ProductName as Name,UnitPrice})}";
     //string expression = "new { FirstName , Account = new {Name + 's', Balance} , IsMale }";
     // string expression = "FirstName , Account = new {Name + 's', Balance} , IsMale ";
-    string expression = "Account = new {Account.Name + 's'  as 'Id', Account.Balance}"; //TODO add = support, also support levels like outer one could be in or assign value can be in
+   
+    //string expression = "Account = new {Account.Name + 's'  as 'Id', Account.Balance}"; //TODO add = support, also support levels like outer one could be in or assign value can be in
+    string expression = "FirstName, Childrens.Select(new {Name , Gender}).ToList() as Kids";
     //string expression = "Account.Bind(new {Name + 's', Balance})";
     //string expression = "new {Name + 's' as 'Id', Balance}";
     // string expression = "new { FirstName , LastName , Account.Name , Account.Balance}";

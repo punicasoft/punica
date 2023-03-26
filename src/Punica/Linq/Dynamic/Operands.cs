@@ -106,8 +106,8 @@ namespace Punica.Linq.Dynamic
                         return new Operands(Expression.Constant(int.Parse(left.Value)),
                             Expression.Constant(int.Parse(right.Value)));
                     case TokenType.RealNumber:
-                        return new Operands(Expression.Constant(decimal.Parse(left.Value)),
-                            Expression.Constant(decimal.Parse(right.Value)));
+                        return new Operands(Expression.Constant(double.Parse(left.Value)),
+                            Expression.Constant(double.Parse(right.Value)));
                     case TokenType.Boolean:
                         return new Operands(Expression.Constant(bool.Parse(left.Value)),
                             Expression.Constant(bool.Parse(right.Value)));
@@ -175,7 +175,7 @@ namespace Punica.Linq.Dynamic
         {
             if (type.IsCollection())
             {
-                type = type.GetElementType();
+                type = type.GetElementOrGenericArgType();
             }
 
             if (type == typeof(string))

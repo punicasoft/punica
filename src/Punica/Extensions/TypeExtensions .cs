@@ -10,6 +10,7 @@ namespace Punica.Extensions
         /// <param name="type"></param>
         /// <param name="fromType"></param>
         /// <returns></returns>
+        /// TODO: handle type == fromType ? check whether it cause issue assembly scanner and use it since this is not used
         public static bool IsImplementedFrom(this Type type, Type fromType)
         {
             Type? implementedType = null;
@@ -103,14 +104,41 @@ namespace Punica.Extensions
             if (type.IsGenericType)
             {
                 Type genericTypeDefinition = type.GetGenericTypeDefinition();
-                if (genericTypeDefinition == typeof(List<>) || genericTypeDefinition == typeof(IList<>)
-                                                            || genericTypeDefinition == typeof(ICollection<>))
+
+                if (genericTypeDefinition == typeof(List<>)
+                    || genericTypeDefinition == typeof(IList<>)
+                    || genericTypeDefinition == typeof(ICollection<>)
+                    || genericTypeDefinition == typeof(IQueryable<>)
+                    || (genericTypeDefinition == typeof(IEnumerable<>) && type != typeof(string)))
                 {
                     return true;
                 }
             }
 
             return type.IsArray;
+        }
+
+        /// <summary>
+        /// Check whether a given type is a collection. <see cref="Array"/> , <see cref="IList{T}"/>,  <see cref="ICollection{T}"/> are included
+        /// but string does not included as a collection.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="elementType">Returns element type of the collection null if it not a collection</param>
+        /// <returns></returns>
+        /// TODO: utilize Is implemented from
+        public static bool IsCollection(this Type type, out Type? elementType)
+        {
+            elementType = null;
+
+            var result = type.IsCollection();
+
+            if (result)
+            {
+                elementType = type.GetElementOrGenericArgType();
+            }
+
+            return result;
+            
         }
 
 
@@ -129,36 +157,7 @@ namespace Punica.Extensions
             return null;
         }
 
-        /// <summary>
-        /// Check whether a given type is a collection. <see cref="Array"/> , <see cref="IList{T}"/>,  <see cref="ICollection{T}"/> are included
-        /// but string does not included as a collection.
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="elementType">Returns element type of the collection null if it not a collection</param>
-        /// <returns></returns>
-        public static bool IsCollection(this Type type, out Type? elementType)
-        {
-            elementType = null;
-
-            if (type.IsGenericType)
-            {
-                Type genericTypeDefinition = type.GetGenericTypeDefinition();
-                if (genericTypeDefinition == typeof(List<>) || genericTypeDefinition == typeof(IList<>)
-                                                            || genericTypeDefinition == typeof(ICollection<>))
-                {
-                    elementType = type.GetGenericArguments()[0];
-                    return true;
-                }
-            }
-
-            if (type.IsArray)
-            {
-                elementType = type.GetElementType();
-                return true;
-            }
-
-            return false;
-        }
+       
 
     }
 }

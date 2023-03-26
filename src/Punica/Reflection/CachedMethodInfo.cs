@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Punica.Reflection
 {
@@ -24,8 +25,26 @@ namespace Punica.Reflection
 
         private static MethodInfo? _select;
 
+        private static MethodInfo? _selectQueryable;
+
         public static MethodInfo Select(Type source, Type result) => (_select ??= new Func<IEnumerable<object>, Func<object, object>, IEnumerable<object>>(Enumerable.Select).GetMethodInfo().GetGenericMethodDefinition())
             .MakeGenericMethod(source, result);
+
+        public static MethodInfo SelectQueryable(Type source, Type result) => (_selectQueryable ??= new Func<IQueryable<object>, Expression<Func<object, object>>, IQueryable<object>>(Queryable.Select).GetMethodInfo().GetGenericMethodDefinition())
+            .MakeGenericMethod(source, result);
+
+        public static MethodInfo Select(this Type type, Type source, Type result)
+        {
+            if (typeof(IQueryable).IsAssignableFrom(type))
+            {
+                return SelectQueryable(source, result);
+            }
+            else
+            {
+                return Select(source, result);
+            }
+        }
+
 
         private static MethodInfo? _toList;
 

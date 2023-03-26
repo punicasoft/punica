@@ -1,6 +1,9 @@
-﻿using Punica.Extensions;
+﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using Punica.Extensions;
+using Punica.Tests.Utils;
 
-namespace Punica.Tests
+namespace Punica.Tests.Extensions
 {
     public class TypeExtensionsTests
     {
@@ -75,52 +78,20 @@ namespace Punica.Tests
 
         }
 
-
-        internal interface IA
+        [Theory]
+        [InlineData(false, typeof(int), null)]
+        [InlineData(false, typeof(string), null)]
+        [InlineData(true, typeof(int[]), typeof(int))]
+        [InlineData(true, typeof(List<string>), typeof(string))]
+        [InlineData(true, typeof(IList<string>), typeof(string))]
+        [InlineData(true, typeof(ICollection<string>), typeof(string))]
+        [InlineData(true, typeof(IEnumerable<string>), typeof(string))]
+        [InlineData(true, typeof(IQueryable<object>), typeof(object))]
+        public void IsCollectionWithOut_ShouldCheckForCollectionWIthTypes(bool expected, Type type, Type? expectedType)
         {
-
-        }
-
-        internal interface IB
-        {
-        }
-
-        internal interface IB<T> :IB
-        {
-            T Id { get; }
-        }
-
-        internal interface IC<T>
-        {
-            T Id { get; }
-        }
-
-        internal class A : IA
-        {
-
-        }
-        internal class Aa : A
-        {
-
-        }
-
-        internal class B : IB<Guid>
-        {
-            public Guid Id { get; }
-        }
-
-        internal class C : IC<B>
-        {
-            public B Id { get; }
-        }
-
-        internal class Ca : IC<Aa>
-        {
-            public Aa Id { get; }
-        }
-
-        internal class D : C
-        {
+            var actual = type.IsCollection(out Type? actualType);
+            Assert.Equal(expected, actual);
+            Assert.Equal(expectedType, actualType);
         }
     }
 }

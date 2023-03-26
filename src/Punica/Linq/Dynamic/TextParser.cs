@@ -13,11 +13,17 @@ namespace Punica.Linq.Dynamic
             new Token("new", TokenType.Operator, Operator.New)
         };
 
-        //TODO: add support for custom function call like MyMethod() since currently it only support Instance.MyMethod(), maybe use this.MyMethod()
+        // TODO: add support for custom function call like MyMethod() since currently it only support Instance.MyMethod(), maybe use this.MyMethod()
         public static Expression[] Evaluate(string expression, IEvaluator evaluator)
         {
             // Convert the expression into a list of tokens
             List<Token> tokens = Tokenize(expression);
+
+            //If there is no tokens return empty array;
+            if (tokens.Count == 0)
+            {
+                return Array.Empty<Expression>();
+            }
 
             // Evaluate the expression using the shunting-yard algorithm
             Stack<Token> outputQueue = new Stack<Token>();
@@ -135,7 +141,6 @@ namespace Punica.Linq.Dynamic
             if (outputQueue.Count == 1)
             {
                 var exp = evaluator.Single(outputQueue.Pop());
-                // return new[] { exp };
                 return exp;
             }
 
@@ -246,29 +251,21 @@ namespace Punica.Linq.Dynamic
                         var leftOperand16 = evaluationStack.Pop();
                         evaluationStack.Push(evaluator.Contains(leftOperand16, rightOperand16));
                         break;
-                    case Operator.Method:
-                        var rightOperand17 = evaluationStack.Pop();
-                        var leftOperand17 = evaluationStack.Pop();
-                        evaluationStack.Push(evaluator.Any(leftOperand17, rightOperand17));
-                        break;
+                    //case Operator.Method:
+                    //    var rightOperand17 = evaluationStack.Pop();
+                    //    var leftOperand17 = evaluationStack.Pop();
+                    //    evaluationStack.Push(evaluator.Any(leftOperand17, rightOperand17));
+                    //    break;
                     case Operator.New:
                         var rightOperand18 = evaluationStack.Pop();
                         evaluationStack.Push(evaluator.New(rightOperand18));
                         break;
                     case Operator.Dot:
 
-                        //var token1 = reverse.Peek() ;
-
-                        //if (token1 is Token t1 && t1.Operator == Operator.Method)
-                        //{
-                        //    break;
-                        //}
-
                         var rightOperand19 = evaluationStack.Pop();
                         var leftOperand19 = evaluationStack.Pop();
 
-                        if (evaluationStack.Count > 0 && evaluationStack.Peek() is Token t1 &&
-                            t1.Type == TokenType.Member)
+                        if (evaluationStack.Count > 0 && (evaluationStack.Peek() is Token t1 && t1.Type == TokenType.Member || evaluationStack.Peek() is Expression) )
                         {
                             var member = evaluationStack.Pop();
                             evaluationStack.Push(evaluator.Call(member, leftOperand19, rightOperand19));
@@ -279,8 +276,8 @@ namespace Punica.Linq.Dynamic
                         }
 
                         break;
-                    case Operator.Sequence:
-                        break;
+                    //case Operator.Sequence:
+                    //    break;
                     case Operator.As:
                         var rightOperand20 = evaluationStack.Pop();
                         var leftOperand20 = evaluationStack.Pop();
@@ -566,8 +563,8 @@ namespace Punica.Linq.Dynamic
                     int dotIndex = -1;
                     int methodIndex = -1;
 
-                    //TODO : have custom punctuation
-                    while (j < expression.Length && !(char.IsWhiteSpace(expression[j]) || char.IsPunctuation(expression[j])))
+                    // TODO : have custom punctuation
+                    while (j < expression.Length && !(char.IsWhiteSpace(expression[j]) || (char.IsPunctuation(expression[j]) && !number)))
                     {
                         if (number)
                         {
@@ -882,26 +879,6 @@ namespace Punica.Linq.Dynamic
                     throw new ArgumentException($"Invalid operator: {op}");
             }
         }
-
-
-        //static bool IsLeftAssociative(string op)
-        //{
-        //    switch (op)
-        //    {
-        //        case "&&":
-        //        case "||":
-        //            return true;
-        //        case "==":
-        //        case "!=":
-        //        case "<":
-        //        case "<=":
-        //        case ">":
-        //        case ">=":
-        //            return false;
-        //        default:
-        //            throw new ArgumentException($"Invalid operator: {op}");
-        //    }
-        //}
-
+        
     }
 }
