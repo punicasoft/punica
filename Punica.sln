@@ -62,6 +62,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Punica.Performance.Tests", "test\Punica.Performance.Tests\Punica.Performance.Tests.csproj", "{9C764C7E-5A83-4E8A-A603-392BCDDA8870}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -164,6 +166,10 @@ Global
 		{87DEB432-E6F4-4808-9D32-2AB9F19A5557}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87DEB432-E6F4-4808-9D32-2AB9F19A5557}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{87DEB432-E6F4-4808-9D32-2AB9F19A5557}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C764C7E-5A83-4E8A-A603-392BCDDA8870}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C764C7E-5A83-4E8A-A603-392BCDDA8870}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C764C7E-5A83-4E8A-A603-392BCDDA8870}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C764C7E-5A83-4E8A-A603-392BCDDA8870}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -193,6 +199,7 @@ Global
 		{F6C78235-DA8E-4F9E-B586-7825DCBEFA7B} = {6E5DD82A-8835-41DC-A5EE-4219BEE7B80C}
 		{F5C7D8E0-A559-4862-ADF8-1FB4EAAFEABA} = {6E5DD82A-8835-41DC-A5EE-4219BEE7B80C}
 		{87DEB432-E6F4-4808-9D32-2AB9F19A5557} = {27B52C05-D5C5-4802-8C8E-49FE4223F851}
+		{9C764C7E-5A83-4E8A-A603-392BCDDA8870} = {4D2181F3-A671-4278-B79E-5239A7D5B5A0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B8B2037F-7F32-4DBA-B5B8-B6817F7677E0}
