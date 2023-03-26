@@ -9,6 +9,6 @@ namespace Sample.Application.Orders
 {
     public interface IOrderQueries
     {
-        List<dynamic> GetPersons(List<string> columns, string filter);
+        List<dynamic> GetPersons(string columns, string filter);
     }
 }

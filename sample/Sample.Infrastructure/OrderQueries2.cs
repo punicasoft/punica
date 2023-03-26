@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Punica.Bp.EFCore.Querying;
+using Punica.Bp.EFCore.Query;
 using Sample.Application.Orders;
 using Sample.Domain.Aggregates.Orders;
 
@@ -17,7 +17,7 @@ namespace Sample.Infrastructure
         }
 
 
-        public List<dynamic> GetPersons(List<string> columns, string filter)
+        public List<dynamic> GetPersons(string columns, string filter)
         {
             return GetList<Order>(columns, filter);
         }
