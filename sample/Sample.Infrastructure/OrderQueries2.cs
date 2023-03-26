@@ -17,7 +17,7 @@ namespace Sample.Infrastructure
         }
 
 
-        public List<dynamic> GetPersons(List<string> columns, string filter)
+        public List<dynamic> GetPersons(string columns, string filter)
         {
             return GetList<Order>(columns, filter);
         }

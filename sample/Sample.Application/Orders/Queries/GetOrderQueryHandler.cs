@@ -18,7 +18,7 @@ namespace Sample.Application.Orders.Queries
         public async Task<List<object>> Handle(GetOrderQuery query, CancellationToken cancellationToken)
         {
             await Task.Delay(1, cancellationToken);
-            return _queries.GetPersons(query.Columns, query.Filter);
+            return _queries.GetPersons(query.Select, query.Filter);
         }
     }
 }
