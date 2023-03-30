@@ -45,10 +45,9 @@ namespace Punica.Reflection
             }
         }
 
-
         private static MethodInfo? _toList;
 
-        public static MethodInfo ToList(Type type) => _toList ??= (typeof(Enumerable).GetMethod(nameof(Enumerable.ToList))!)
+        public static MethodInfo ToList(Type type) => (_toList ??= typeof(Enumerable).GetMethod(nameof(Enumerable.ToList))!)
             .MakeGenericMethod(type);
 
        
