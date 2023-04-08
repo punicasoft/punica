@@ -51,4 +51,11 @@ public class Test
         //});
         Expression<Func<string,string>> e = (st) => st + "hey";
     }
+
+    public void Test6()
+    {
+        Expression<Func<double>> exp = () => -5.6 / 7.9;
+
+        Expression<Func<double>> exp2 = () => 5.6 / - 7.9;
+    }
 }

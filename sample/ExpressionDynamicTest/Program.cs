@@ -12,6 +12,7 @@ using System.Xml.Linq;
 using ExpressionDynamicTest.Parsing;
 using ExpressionDynamicTest.Parsing.Models;
 using Punica.Linq.Dynamic;
+using Punica.Linq.Dynamic.RD;
 
 //string expression = "!(5 > 3 && 2 <= 4 || 1 != 1 ) && 5 > 3";
 //string expression = "(5 > 3 && 2 <= 4 || 1 != 1 ) && 5 > 3";
@@ -66,8 +67,14 @@ var person = new Person()
 
 MyMethod(parameters, person);
 
-var sql = "new{Name,Id,Buyer.Name as BuyerName,Buyer.Email, Items.new{Id,ProductName as Name,UnitPrice}}";
+var error = "new{Id,FirstName as 'BuyerName', Account.Name, Account . Name , Childrens.Select(new{Name,Gender}})";
 
+var sql = "new{Id,FirstName as 'BuyerName', Account.Name, Account . Name , Childrens.Select(new{Name,Gender})}";
+
+var tokens = Tokenizer2.Tokenize(new TokenContext(sql)
+{
+    Parameter = Expression.Parameter(typeof(Person), "arg")
+});
 
 
 Console.ReadLine();
