@@ -1,11 +1,12 @@
 ﻿using System.Linq.Expressions;
+using Punica.Linq.Dynamic.RD.Tokens.abstractions;
 
 namespace Punica.Linq.Dynamic.RD.Tokens
 {
     public class TokenList: ITokenList
     {
         public bool IsLeftAssociative => true;
-        public ParameterExpression? Parameter { get; } = null;
+        public IExpression? Parameter { get; } = null;
         public List<IToken> Tokens { get; }
         public short Precedence => 0;
         public TokenType TokenType => TokenType.List;

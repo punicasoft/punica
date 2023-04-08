@@ -11,7 +11,9 @@ namespace Punica.Linq.Dynamic.RD.Tokens
         {
             var right = stack.Pop();
             var left = stack.Pop();
-            return Expression.GreaterThanOrEqual(left, right);
+
+            var tuple = ConvertExpressions(left, right);
+            return Expression.GreaterThanOrEqual(tuple.left, tuple.right);
         }
     }
 }

@@ -1,40 +1,43 @@
 ﻿using System.Linq.Expressions;
+using System.Reflection.Metadata;
 using Punica.Extensions;
 using Punica.Linq.Dynamic.RD.Tokens.abstractions;
 using Punica.Reflection;
 
 namespace Punica.Linq.Dynamic.RD.Tokens
 {
-    public class MethodToken : Operation, ITokenList
+    public class MethodToken : Operation, ITokenList, IExpression
     {
+        private readonly int _depth;
         public string MethodName { get; }
-        public Expression MemberExpression { get; } // TODO support chaining of methods
-        public ParameterExpression? Parameter { get; }
+        public IExpression MemberExpression { get; } // TODO support chaining of methods
+        public IExpression? Parameter { get; }
         public List<IToken> Tokens { get; }
-        public bool IsLeftAssociative => false;
+        public override bool IsLeftAssociative => false;
         public override short Precedence => 14;
         //public TokenType TokenType => TokenType.Member;
         public override ExpressionType ExpressionType => ExpressionType.Call;
+        
 
-        private bool _isCollection = false;
-
-        public MethodToken(string methodName, Expression memberExpression, int depth)
+        public MethodToken(string methodName, IExpression memberExpression, int depth)
         {
+            _depth = depth;
             MethodName = methodName;
             MemberExpression = memberExpression;
             Tokens = new List<IToken>();
 
-            if (memberExpression.Type.IsCollection(out var type))
-            {
-                _isCollection = true;
-                Parameter = Expression.Parameter(type, "arg" + depth);
-            }
-            else
-            {
-                Parameter = Expression.Parameter(memberExpression.Type, "arg" + depth);
-            }
+            Parameter = new ParameterToken(memberExpression, "arg" + _depth);
+            //var memberExpression = MemberExpression.Evaluate();
 
-           
+            //if (memberExpression.Type.IsCollection(out var type))
+            //{
+            //    _isCollection = true;
+            //    Parameter = Expression.Parameter(type, "arg" + _depth);
+            //}
+            //else
+            //{
+            //    Parameter = Expression.Parameter(memberExpression.Type, "arg" + _depth);
+            //}
         }
 
         public void AddToken(IToken token)
@@ -44,7 +47,10 @@ namespace Punica.Linq.Dynamic.RD.Tokens
 
         public override Expression Evaluate(Stack<Expression> stack)
         {
-            if (_isCollection)
+            var memberExpression = MemberExpression.Evaluate();
+            var parameter = (ParameterExpression)Parameter.Evaluate();
+
+            if (memberExpression.Type.IsCollection())
             {
 
 
@@ -68,10 +74,10 @@ namespace Punica.Linq.Dynamic.RD.Tokens
                             throw new ArgumentException($"Invalid expression for Any");
                         }
 
-                        var anyType = typeof(Func<,>).MakeGenericType(Parameter.Type, typeof(bool));
-                        e2 = Expression.Lambda(anyType, expressions[0], Parameter);
+                        var anyType = typeof(Func<,>).MakeGenericType(parameter.Type, typeof(bool));
+                        e2 = Expression.Lambda(anyType, expressions[0], parameter);
 
-                        return Expression.Call(EnumerableCachedMethodInfo.Any(Parameter.Type), MemberExpression, e2);
+                        return Expression.Call(EnumerableCachedMethodInfo.Any(parameter.Type), memberExpression, e2);
                     case "Contains":
                         //if (expressions.Length != 1)
                         //{
@@ -88,12 +94,12 @@ namespace Punica.Linq.Dynamic.RD.Tokens
                         {
                             throw new ArgumentException($"Invalid expression for Select");
                         }
-                        var selectType = typeof(Func<,>).MakeGenericType(Parameter.Type, expressions[0].Type);
-                        e2 = Expression.Lambda(selectType, expressions[0], Parameter);
-                        return Expression.Call(EnumerableCachedMethodInfo.Select(Parameter.Type, expressions[0].Type), MemberExpression, e2);
+                        var selectType = typeof(Func<,>).MakeGenericType(parameter.Type, expressions[0].Type);
+                        e2 = Expression.Lambda(selectType, expressions[0], parameter);
+                        return Expression.Call(EnumerableCachedMethodInfo.Select(parameter.Type, expressions[0].Type), memberExpression, e2);
 
                     case "ToList":
-                        return Expression.Call(CachedMethodInfo.ToList(Parameter.Type), MemberExpression); //TODO check this validity since there is no right side
+                        return Expression.Call(CachedMethodInfo.ToList(parameter.Type), memberExpression); //TODO check this validity since there is no right side
                     default:
                         throw new ArgumentException($"Invalid method {MethodName}");
                 }
@@ -110,6 +116,11 @@ namespace Punica.Linq.Dynamic.RD.Tokens
                 //TODO find the method find the expression
                 // return Expression.Call(CachedMethodInfo.EnumerableContainsMethod(e1.Type), right);
             }
+        }
+
+        public Expression Evaluate()
+        {
+            return Evaluate(null);
         }
     }
 }

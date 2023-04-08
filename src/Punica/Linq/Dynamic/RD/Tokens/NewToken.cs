@@ -8,7 +8,7 @@ namespace Punica.Linq.Dynamic.RD.Tokens
     public class NewToken : Operation, ITokenList
     {
        // public Expression MemberExpression { get; }
-        public ParameterExpression? Parameter { get; }
+        public IExpression? Parameter { get; }
         public List<IToken> Tokens { get; }
         public override short Precedence => 14;
         public override ExpressionType ExpressionType => ExpressionType.New;
@@ -49,7 +49,7 @@ namespace Punica.Linq.Dynamic.RD.Tokens
 
         }
 
-        public NewToken(ParameterExpression? parameter)
+        public NewToken(IExpression? parameter)
         {
             Tokens = new List<IToken>();
             Parameter = parameter;

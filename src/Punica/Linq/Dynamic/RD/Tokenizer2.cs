@@ -246,7 +246,6 @@ namespace Punica.Linq.Dynamic.RD
 
         public static bool IsEndOfExpression(int i, TokenContext context, out int index)
         {
-            bool isEndOfIdentifier = false;
             index = i;
 
             if (char.IsWhiteSpace(context.Text[i]))
@@ -280,15 +279,14 @@ namespace Punica.Linq.Dynamic.RD
             }
         }
 
-        //TODO parse at once for expressions
-        public static int Parse2(int i, TokenContext context, out IToken token)
-        {
-            token = null;
-            Expression exp = context.Parameter;
-            // Handle operands
-            int j = i + 1;
 
-            int index = j;
+        private static IExpression GetStartExpression(ref int i, TokenContext context, out int j, out int index)
+        {
+            IExpression exp = context.Parameter;
+            // Handle operands
+            j = i + 1;
+
+            index = j;
             // TODO : have custom punctuation   user, user.name, user . name, user.name.select()
             while (j < context.Text.Length && !IsEndOfExpression(j, context, out index))  //&& !(char.IsWhiteSpace(expression[j]) || (char.IsPunctuation(expression[j])))
             {
@@ -296,7 +294,7 @@ namespace Punica.Linq.Dynamic.RD
                 if (context.Text[index] == '.')
                 {
                     var property = context.Text.Substring(i, j - i);
-                    exp = Expression.PropertyOrField(exp, property);
+                    exp = new PropertyToken(exp, property);
 
                     i = index + 1;
 
@@ -313,14 +311,61 @@ namespace Punica.Linq.Dynamic.RD
                 j++;
             }
 
+            return exp;
+        }
+
+        //TODO parse at once for expressions
+        public static int Parse2(int i, TokenContext context, out IToken token)
+        {
+            token = null;
+            //Expression exp = context.Parameter;
+            //// Handle operands
+            //int j = i + 1;
+
+            //int index = j;
+            //// TODO : have custom punctuation   user, user.name, user . name, user.name.select()
+            //while (j < context.Text.Length && !IsEndOfExpression(j, context, out index))  //&& !(char.IsWhiteSpace(expression[j]) || (char.IsPunctuation(expression[j])))
+            //{
+
+            //    if (context.Text[index] == '.')
+            //    {
+            //        var property = context.Text.Substring(i, j - i);
+            //        exp = Expression.PropertyOrField(exp, property);
+
+            //        i = index + 1;
+
+            //        while (i < context.Text.Length && char.IsWhiteSpace(context.Text[i]))
+            //        {
+            //            i++;
+            //        }
+
+            //        index = i;
+            //    }
+
+            //    j = index;
+
+            //    j++;
+            //}
+
+            var exp = GetStartExpression(ref i, context, out var j, out var index);
+
             if (i >= context.Text.Length || i == j)
             {
                 return i;
             }
 
-
             var stringVal = context.Text.Substring(i, j - i); // 1 char length
 
+            j = GetMethod(context, out token, index, stringVal, exp, j);
+
+
+            i = j - 1;
+
+            return i;
+        }
+
+        private static int GetMethod(TokenContext context, out IToken? token, int index, string stringVal, IExpression exp, int j)
+        {
             if (context.Text[index] == '(' || context.Text[index] == '{')
             {
                 var openChar = context.Text[index];
@@ -354,35 +399,37 @@ namespace Punica.Linq.Dynamic.RD
                             break;
                         case ')':
                             depth--;
-                            if (openChar == '(')
+                            if (openChar == '(' && parameter.Tokens.Count>0)
                             {
                                 methodToken.AddToken(parameter); // only add if it is on same level as there could be mix due to incorrect number of end curly brackets
                             }
+
                             break;
                         case '}':
                             depth--;
-                            if (openChar == '{')
+                            if (openChar == '{' && parameter.Tokens.Count > 0)
                             {
-                                methodToken.AddToken(parameter);  // only add if it is on same level as there could be mix due to incorrect number of close parentheses
+                                methodToken.AddToken(parameter); // only add if it is on same level as there could be mix due to incorrect number of close parentheses
                             }
+
                             break;
                         case ',':
                             methodToken.AddToken(parameter);
                             parameter = new TokenList();
                             break;
                         default:
+                        {
+                            //TODO: if it is method with function/expression then change the context with correct arg
+                            j = GetToken(new TokenContext(context.Text, context.Depth + 1, methodToken.Parameter), j,
+                                out var token2);
+
+                            if (token2 != null)
                             {
-                                //TODO: if it is method with function/expression then change the context with correct arg
-                                j = GetToken(new TokenContext(context, methodToken.Parameter), j, out var token2);
-
-                                if (token2 != null)
-                                {
-                                    parameter.AddToken(token2);
-                                }
-
-                                break;
+                                parameter.AddToken(token2);
                             }
 
+                            break;
+                        }
                     }
 
                     j++;
@@ -395,20 +442,25 @@ namespace Punica.Linq.Dynamic.RD
 
                 token = methodToken;
 
-                //j = j - 1;
+                if (j < context.Text.Length && context.Text[j] == '.')
+                {
+                    j =  Parse2(j+1, new TokenContext(context.Text, context.Depth, methodToken as IExpression),
+                        out token);
 
+                    return j+1;
+                }
+
+                //j = j - 1;
             }
             else
             {
-                exp = Expression.PropertyOrField(exp, stringVal);
+                exp = new PropertyToken(exp, stringVal);
                 token = new ValueToken(exp);
-
+                //exp = Expression.PropertyOrField(exp, stringVal);
+                // token = new ValueToken(exp);
             }
 
-
-            i = j - 1;
-
-            return i;
+            return j;
         }
 
         private static int Parse(int i, string expression, out IToken token)
@@ -467,39 +519,39 @@ namespace Punica.Linq.Dynamic.RD
             return false;
         }
 
-        private static int AddCurlyParenthesesContent(string expression, int i, out IToken token)
-        {
-            int j = i + 1;
+        //private static int AddCurlyParenthesesContent(string expression, int i, out IToken token)
+        //{
+        //    int j = i + 1;
 
-            int depth = 1;
+        //    int depth = 1;
 
-            while (j < expression.Length && depth > 0)
-            {
-                switch (expression[j])
-                {
-                    case '{':
-                        depth++;
-                        break;
-                    case '}':
-                        depth--;
-                        break;
-                    default:
-                        break;
-                }
+        //    while (j < expression.Length && depth > 0)
+        //    {
+        //        switch (expression[j])
+        //        {
+        //            case '{':
+        //                depth++;
+        //                break;
+        //            case '}':
+        //                depth--;
+        //                break;
+        //            default:
+        //                break;
+        //        }
 
-                j++;
-            }
+        //        j++;
+        //    }
 
-            if (depth != 0)
-            {
-                throw new ArgumentException("Input contains mismatched parentheses.");
-            }
+        //    if (depth != 0)
+        //    {
+        //        throw new ArgumentException("Input contains mismatched parentheses.");
+        //    }
 
-            var innerExp = expression.Substring(i + 1, j - i - 2);
-            token = new ValueToken(Expression.Constant(innerExp));
-            i = j - 1;
-            return i;
-        }
+        //    var innerExp = expression.Substring(i + 1, j - i - 2);
+        //    token = new ValueToken(Expression.Constant(innerExp));
+        //    i = j - 1;
+        //    return i;
+        //}
 
         private static int AddParameter(TokenContext context, int i, out IToken token)
         {
@@ -558,59 +610,59 @@ namespace Punica.Linq.Dynamic.RD
             return i;
         }
 
-        private static int AddOpenParenthsesOrMethodContent(string expression, List<IToken> tokens, int i)
-        {
-            var count = tokens.Count;
+        //private static int AddOpenParenthsesOrMethodContent(string expression, List<IToken> tokens, int i)
+        //{
+        //    var count = tokens.Count;
 
-            if (count > 0)
-            {
-                if (tokens[count - 1].TokenType == TokenType.Member)
-                {
-                    int j = i + 1;
+        //    if (count > 0)
+        //    {
+        //        if (tokens[count - 1].TokenType == TokenType.Member)
+        //        {
+        //            int j = i + 1;
 
-                    int depth = 1;
+        //            int depth = 1;
 
-                    while (j < expression.Length && depth > 0)
-                    {
-                        switch (expression[j])
-                        {
-                            case '(':
-                                depth++;
-                                break;
-                            case ')':
-                                depth--;
-                                break;
-                            default:
-                                break;
-                        }
+        //            while (j < expression.Length && depth > 0)
+        //            {
+        //                switch (expression[j])
+        //                {
+        //                    case '(':
+        //                        depth++;
+        //                        break;
+        //                    case ')':
+        //                        depth--;
+        //                        break;
+        //                    default:
+        //                        break;
+        //                }
 
-                        j++;
-                    }
+        //                j++;
+        //            }
 
-                    if (depth != 0)
-                    {
-                        throw new ArgumentException("Input contains mismatched parentheses.");
-                    }
+        //            if (depth != 0)
+        //            {
+        //                throw new ArgumentException("Input contains mismatched parentheses.");
+        //            }
 
-                    var innerExp = expression.Substring(i + 1, j - i - 2);
+        //            var innerExp = expression.Substring(i + 1, j - i - 2);
 
-                    //tokens[count - 1] = new Token(tokens[count - 1].Value, TokenType.Operator, Operator.Method); //set previous token as a method
-                    tokens.Add(new ValueToken(Expression.Constant(innerExp)));
+        //            //tokens[count - 1] = new Token(tokens[count - 1].Value, TokenType.Operator, Operator.Method); //set previous token as a method
+        //            tokens.Add(new ValueToken(Expression.Constant(innerExp)));
 
-                    i = j - 1;
-                }
-                else
-                {
-                    tokens.Add(TokenCache.LeftParenthesis);
-                }
-            }
-            else
-            {
-                tokens.Add(TokenCache.LeftParenthesis);
-            }
+        //            i = j - 1;
+        //        }
+        //        else
+        //        {
+        //            tokens.Add(TokenCache.LeftParenthesis);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        tokens.Add(TokenCache.LeftParenthesis);
+        //    }
 
-            return i;
-        }
+        //    return i;
+        //}
 
         private static int AddString(string expression, int i, char c, out IToken token)
         {

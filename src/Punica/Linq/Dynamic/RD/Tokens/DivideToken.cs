@@ -12,7 +12,8 @@ namespace Punica.Linq.Dynamic.RD.Tokens
             var right = stack.Pop();
             var left = stack.Pop();
 
-            return Expression.Divide(left, right);
+            var tuple = ConvertExpressions(left, right);
+            return Expression.Divide(tuple.left, tuple.right);
         }
     }
 }

@@ -19,7 +19,10 @@ namespace Punica.Linq.Dynamic.RD.Tokens
                 return Expression.Call(CachedMethodInfo.Concat, left, right);
             }
 
-            return Expression.Add(left, right);
+            var tuple = ConvertExpressions(left, right);
+            return Expression.Add(tuple.left, tuple.right);
         }
+
+      
     }
 }

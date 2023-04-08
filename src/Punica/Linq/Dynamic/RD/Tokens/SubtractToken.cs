@@ -17,7 +17,9 @@ namespace Punica.Linq.Dynamic.RD.Tokens
             }
 
             var left = stack.Pop();
-            return Expression.Subtract(left, right);
+
+            var tuple = ConvertExpressions(left, right);
+            return Expression.Subtract(tuple.left, tuple.right);
         }
     }
 }

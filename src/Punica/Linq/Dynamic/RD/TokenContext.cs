@@ -1,4 +1,6 @@
 ﻿using System.Linq.Expressions;
+using Punica.Linq.Dynamic.RD.Tokens;
+using Punica.Linq.Dynamic.RD.Tokens.abstractions;
 
 namespace Punica.Linq.Dynamic.RD
 {
@@ -8,35 +10,42 @@ namespace Punica.Linq.Dynamic.RD
 
         public int Depth { get; }
 
-        public Expression? ParameterInstance { get; set; }
+        public Expression? ParameterInstance { get; }
 
-        public ParameterExpression? Parameter { get; set; }
+        public IExpression? Parameter { get;}
 
-        public TokenContext(string text) : this(text, 0)
-        {
-        }
 
-        public TokenContext(string text, int depth)
+        internal TokenContext(string text, int depth, IExpression? parameter = null, Expression? parameterInstance = null)
         {
             Text = text;
             Depth = depth;
+            ParameterInstance = parameterInstance;
+            Parameter = parameter;
         }
 
-        public TokenContext(TokenContext context)
+        public TokenContext(string text, IExpression? parameter = null, Expression? parameterInstance = null) : this(text, 0, parameter, parameterInstance)
         {
-            Text = context.Text;
-            Depth = context.Depth + 1;
-            ParameterInstance = context.ParameterInstance;
-            Parameter = context.Parameter;
         }
 
-        public TokenContext(TokenContext context, ParameterExpression? arg)
+        public TokenContext(string text, ParameterExpression parameter, Expression? parameterInstance = null) : this(text, 0, new ParameterToken(parameter), parameterInstance)
         {
-            Text = context.Text;
-            Depth = context.Depth + 1;
-            ParameterInstance = context.ParameterInstance;
-            Parameter = arg;
         }
+
+        //public TokenContext(TokenContext context)
+        //{
+        //    Text = context.Text;
+        //    Depth = context.Depth + 1;
+        //    ParameterInstance = context.ParameterInstance;
+        //    Parameter = context.Parameter;
+        //}
+
+        //public TokenContext(TokenContext context, ParameterExpression? arg)
+        //{
+        //    Text = context.Text;
+        //    Depth = context.Depth + 1;
+        //    ParameterInstance = context.ParameterInstance;
+        //    Parameter = arg;
+        //}
 
     }
 }
