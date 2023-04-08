@@ -1,5 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
 using Punica.Linq.Dynamic;
+using Punica.Linq.Dynamic.RD;
+using System.Linq.Expressions;
 
 namespace Punica.Performance.Tests.Punica.Linq
 {
@@ -34,19 +36,67 @@ namespace Punica.Performance.Tests.Punica.Linq
         //    var resultExpression = evaluator.GetFilterExpression<bool>(expression1[0]);
         //}
 
+        //[Benchmark]
+        //public void Tokenize_New()
+        //{
+        //    string stringExp = "this.Select( new { FirstName , Children.Select(new {Name , Gender}).ToList() as Kids} )";
+        //    var tokens = Tokenizer.Tokenize(stringExp);
+        //}
+
+        //[Benchmark]
+        //public void Tokenize_New2()
+        //{
+        //    string stringExp = "this.Select( new { FirstName , Children.Select(new {Name , Gender}).ToList() as Kids} )";
+        //    var tokens = Tokenizer2.Tokenize(stringExp, null);
+        //}
+
+        //[Benchmark]
+        //public void Tokenize_Old()
+        //{
+        //    string stringExp = "this.Select( new { FirstName , Children.Select(new {Name , Gender}).ToList() as Kids} )";
+        //    var tokens = TextParser.Tokenize(stringExp);
+        //}
+
         [Benchmark]
-        public void Tokenize_New()
+        public void Tokenize_New_Normal()
         {
-            string stringExp = "this.Select( new { FirstName , Children.Select(new {Name , Gender}).ToList() as Kids} )";
+            string stringExp = "(5 > 3 && 2 <= 4 || 1 != 1 ) && 2 + 4 > 3 && 's' in 'cro' + 's'";
             var tokens = Tokenizer.Tokenize(stringExp);
         }
 
         [Benchmark]
-        public void Tokenize_Old()
+        public void Tokenize_New2_Normal()
         {
-            string stringExp = "this.Select( new { FirstName , Children.Select(new {Name , Gender}).ToList() as Kids} )";
+            string stringExp = "(5 > 3 && 2 <= 4 || 1 != 1 ) && 2 + 4 > 3 && 's' in 'cro' + 's'";
+            var tokens = Tokenizer2.Tokenize(new TokenContext(stringExp));
+        }
+
+        [Benchmark]
+        public void Tokenize_New2_Complex()
+        {
+            var sql = "new{Id,FirstName as 'BuyerName', Account.Name, Account . Name , Children.Select(new{Name,Gender})}";
+
+            var tokens = Tokenizer2.Tokenize(new TokenContext(sql)
+            {
+                Parameter = Expression.Parameter(typeof(Person), "arg")
+            });
+        }
+
+        [Benchmark]
+        public void Tokenize_Old_Complex()
+        {
+            string stringExp = "new{Id,FirstName as 'BuyerName', Account.Name, Account . Name , Childrens.Select(new{Name,Gender})}";
             var tokens = TextParser.Tokenize(stringExp);
         }
+
+        [Benchmark]
+        public void Tokenize_Old_Normal()
+        {
+            string stringExp = "(5 > 3 && 2 <= 4 || 1 != 1 ) && 2 + 4 > 3 && 's' in 'cro' + 's'";
+            var tokens = TextParser.Tokenize(stringExp);
+        }
+
+
 
     }
 
