@@ -34,10 +34,7 @@ namespace Punica.Tests.Linq.Dynamic
 
         private Expression<Func<T1, TResult>> GetExpression<T1, TResult>(string expression)
         {
-            var rootToken = Tokenizer2.Evaluate(new TokenContext(expression)
-            {
-                Parameter = Expression.Parameter(typeof(T1), "arg")
-            });
+            var rootToken = Tokenizer2.Evaluate(new TokenContext(expression, Expression.Parameter(typeof(T1), "arg")));
 
             var resultExpression = rootToken.Evaluate(null);
             return (Expression<Func<T1, TResult>>)resultExpression;
@@ -45,10 +42,7 @@ namespace Punica.Tests.Linq.Dynamic
 
         private LambdaExpression GetGeneralExpression<T1, TResult>(string expression)
         {
-            var rootToken = Tokenizer2.Evaluate(new TokenContext(expression)
-            {
-                Parameter = Expression.Parameter(typeof(T1), "arg")
-            });
+            var rootToken = Tokenizer2.Evaluate(new TokenContext(expression, Expression.Parameter(typeof(T1), "arg")));
 
             var resultExpression = rootToken.Evaluate(null);
             return (LambdaExpression)resultExpression;
@@ -130,10 +124,10 @@ namespace Punica.Tests.Linq.Dynamic
 
         [Theory]
         [InlineData(5.2, 7.2)]
-        [InlineData(5.2, 7, Skip = "Mismatched Type, Not Supported Yet")]
-        [InlineData(5.7, 0, Skip = "Mismatched Type, Not Supported Yet")]
-        [InlineData(-5.2, 7, Skip = "Not Supported Yet")]
-        [InlineData(-7.3, 5, Skip = "Not Supported Yet")]
+        [InlineData(5.2, 7)]
+        [InlineData(5.7, 0)]
+        [InlineData(-5.2, 7)]
+        [InlineData(-7.3, 5)]
         public void Evaluate_WhenExpressionIsMultiplyReal_ShouldWork(double x, double y)
         {
 
@@ -162,7 +156,7 @@ namespace Punica.Tests.Linq.Dynamic
         [Theory]
         [InlineData(11.3, 5.1)]
         [InlineData(5.4, 7.8)]
-        [InlineData(5.4, 3, Skip = "Mismatched Type, Not Supported Yet")]
+        [InlineData(5.4, 3)]
         [InlineData(-5.6, 7.9)]
         [InlineData(-7.8, 3.2)]
         public void Evaluate_WhenExpressionIsDivideReal_ShouldWork(double x, double y)
@@ -427,8 +421,8 @@ namespace Punica.Tests.Linq.Dynamic
         public void Evaluate_WhenExpressionIsNewExpressionWithNew_ShouldWork()
         {
             string stringExp = "new { new { Account.Name, Account.Balance } as 'Bank' }";
-            var resultExpression = GetExpression<Person, object>(stringExp);
-            var actual = resultExpression.Compile()(Data.Persons[0]);
+            var resultExpression = GetGeneralExpression<Person, object>(stringExp);
+            var actual = resultExpression.Compile().DynamicInvoke(Data.Persons[0]);
             var expected = JsonSerializer.Serialize(new { Bank = new { AccountName = Data.Persons[0].Account.Name, AccountBalance = Data.Persons[0].Account.Balance } });
             var actualJson = JsonSerializer.Serialize(actual);
             Assert.Equal(expected, actualJson);
@@ -438,9 +432,9 @@ namespace Punica.Tests.Linq.Dynamic
         [Fact]
         public void Evaluate_WhenExpressionIsNewExpressionWithSelect_ShouldWork()
         {
-            string stringExp = "new { FirstName , Children.Select(new {Name , Gender}).ToList() as Kids}";
-            var resultExpression = GetExpression<Person, object>(stringExp);
-            var actual = resultExpression.Compile()(Data.Persons[0]);
+            string stringExp = "new{FirstName,Children.Select(new{Name,Gender}).ToList() as 'Kids'}";
+            var resultExpression = GetGeneralExpression<Person, object>(stringExp);
+            var actual = resultExpression.Compile().DynamicInvoke(Data.Persons[0]);
             var expected = JsonSerializer.Serialize(new { Data.Persons[0].FirstName, Kids = Data.Persons[0].Children.Select(c => new { c.Name, c.Gender }) });
             var actualJson = JsonSerializer.Serialize(actual);
             Assert.Equal(expected, actualJson);
@@ -449,7 +443,7 @@ namespace Punica.Tests.Linq.Dynamic
         [Fact]
         public void Evaluate_WhenExpressionIsQueryable_ShouldWork()
         {
-            string stringExp = "this.Select( new { FirstName , Children.Select(new {Name , Gender}).ToList() as Kids} )";
+            string stringExp = "this.Select( new { FirstName , Children.Select(new {Name , Gender}).ToList() as 'Kids'} )";
             var resultExpression = GetExpression<IQueryable<Person>, object>(stringExp);
             var actual = resultExpression.Compile()(Data.Persons.AsQueryable());
             var expected = JsonSerializer.Serialize(Data.Persons.AsQueryable().Select(p => new { p.FirstName, Kids = p.Children.Select(c => new { c.Name, c.Gender }) }));
