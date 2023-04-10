@@ -63,46 +63,39 @@ namespace Punica.Linq.Dynamic.RD.Tokens
 
                     expressions.Add(expression);
                 }
-                
-                // call the method
-                LambdaExpression e2;
-                switch (MethodName) //TODO find the method better
-                {
-                    case "Any":
-                        if (expressions.Count != 1)
-                        {
-                            throw new ArgumentException($"Invalid expression for Any");
-                        }
 
-                        var anyType = typeof(Func<,>).MakeGenericType(parameter.Type, typeof(bool));
-                        e2 = Expression.Lambda(anyType, expressions[0], parameter);
+                var methodHandler = MethodHandlerFactory.Instance.GetHandler(memberExpression.Type);
+               
+                return methodHandler.CallMethod(MethodName, memberExpression, parameter, expressions.ToArray());
 
-                        return Expression.Call(EnumerableCachedMethodInfo.Any(parameter.Type), memberExpression, e2);
-                    case "Contains":
-                        //if (expressions.Length != 1)
-                        //{
-                        //    throw new ArgumentException($"Invalid expression for Contains");
-                        //}
+                //// call the method
+                //LambdaExpression e2;
+                //switch (MethodName) //TODO find the method better
+                //{
+                //    case "Any":
+                //        if (expressions.Count != 1)
+                //        {
+                //            throw new ArgumentException($"Invalid expression for Any");
+                //        }
 
-                        //var containType = typeof(Func<,>).MakeGenericType(type, typeof(bool));
-                        //e2 = Expression.Lambda(containType, expressions[0], arg2);
-                        //return Expression.Call(CachedMethodInfo.Enumerable_Contains(type), e1, e2);
-                        return null;
+                //        var anyType = typeof(Func<,>).MakeGenericType(parameter.Type, typeof(bool));
+                //        e2 = Expression.Lambda(anyType, expressions[0], parameter);
 
-                    case "Select":
-                        if (expressions.Count != 1)
-                        {
-                            throw new ArgumentException($"Invalid expression for Select");
-                        }
-                        var selectType = typeof(Func<,>).MakeGenericType(parameter.Type, expressions[0].Type);
-                        e2 = Expression.Lambda(selectType, expressions[0], parameter);
-                        return Expression.Call(EnumerableCachedMethodInfo.Select(parameter.Type, expressions[0].Type), memberExpression, e2);
+                //        return Expression.Call(EnumerableCachedMethodInfo.Any(parameter.Type), memberExpression, e2);
+                //    case "Select":
+                //        if (expressions.Count != 1)
+                //        {
+                //            throw new ArgumentException($"Invalid expression for Select");
+                //        }
+                //        var selectType = typeof(Func<,>).MakeGenericType(parameter.Type, expressions[0].Type);
+                //        e2 = Expression.Lambda(selectType, expressions[0], parameter);
+                //        return Expression.Call(EnumerableCachedMethodInfo.Select(parameter.Type, expressions[0].Type), memberExpression, e2);
 
-                    case "ToList":
-                        return Expression.Call(CachedMethodInfo.ToList(parameter.Type), memberExpression); //TODO check this validity since there is no right side
-                    default:
-                        throw new ArgumentException($"Invalid method {MethodName}");
-                }
+                //    case "ToList":
+                //        return Expression.Call(EnumerableCachedMethodInfo.ToList(parameter.Type), memberExpression); 
+                //    default:
+                //        throw new ArgumentException($"Invalid method {MethodName}");
+                //}
 
             }
             else
@@ -123,4 +116,6 @@ namespace Punica.Linq.Dynamic.RD.Tokens
             return Evaluate(null);
         }
     }
+
+
 }

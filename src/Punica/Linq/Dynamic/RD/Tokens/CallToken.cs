@@ -5,31 +5,7 @@ using Punica.Linq.Dynamic.RD.Tokens.abstractions;
 
 namespace Punica.Linq.Dynamic.RD.Tokens
 {
-    //TODO: name this call properly
-    public class CallToken : IExpression
-    {
-        private readonly MethodToken _methodToken;
-        private Expression _value;
-        private bool _evaluated;
-
-        public CallToken(MethodToken methodToken)
-        {
-            _methodToken = methodToken;
-            _evaluated = false;
-        }
-
-        public Expression Evaluate()
-        {
-            if (!_evaluated)
-            {
-                _value = _methodToken.Evaluate(null);
-                _evaluated = true;
-            }
-
-            return _value;
-        }
-    }
-
+   
     public class PropertyToken : IExpression
     {
         private readonly IExpression _expression;

@@ -86,11 +86,6 @@ namespace Punica.Reflection
         public static MethodInfo Contains(Type type) => (_contains ??= new Func<IEnumerable<object>, object, bool>(Enumerable.Contains).GetMethodInfo().GetGenericMethodDefinition())
             .MakeGenericMethod(type);
 
-        private static MethodInfo? _contains_predicate;
-
-        public static MethodInfo Contains_Predicate(Type type) => (_contains_predicate ??= new Func<IEnumerable<object>, Func<object, bool>, bool>(Enumerable.Contains).GetMethodInfo().GetGenericMethodDefinition())
-            .MakeGenericMethod(type);
-
         private static MethodInfo? _count;
 
         public static MethodInfo Count(Type type) => (_count ??= new Func<IEnumerable<object>, int>(Enumerable.Count).GetMethodInfo().GetGenericMethodDefinition())
@@ -103,7 +98,7 @@ namespace Punica.Reflection
 
         private static MethodInfo? _defaultIfEmpty;
 
-        public static MethodInfo DefaultIfEmpty(Type type) => (_defaultIfEmpty ??= new Func<IEnumerable<object>, IEnumerable<object>>(Enumerable.DefaultIfEmpty).GetMethodInfo().GetGenericMethodDefinition())
+        public static MethodInfo DefaultIfEmpty(Type type) => (_defaultIfEmpty ??= new Func<IEnumerable<object>, IEnumerable<object?>>(Enumerable.DefaultIfEmpty).GetMethodInfo().GetGenericMethodDefinition())
             .MakeGenericMethod(type);
 
         private static MethodInfo? _defaultIfEmpty_defaultValue;
@@ -128,7 +123,7 @@ namespace Punica.Reflection
 
         private static MethodInfo? _elementAtOrDefault;
 
-        public static MethodInfo ElementAtOrDefault(Type type) => (_elementAtOrDefault ??= new Func<IEnumerable<object>, int, object>(Enumerable.ElementAtOrDefault).GetMethodInfo().GetGenericMethodDefinition())
+        public static MethodInfo ElementAtOrDefault(Type type) => (_elementAtOrDefault ??= new Func<IEnumerable<object>, int, object?>(Enumerable.ElementAtOrDefault).GetMethodInfo().GetGenericMethodDefinition())
             .MakeGenericMethod(type);
 
         private static MethodInfo? _except;
@@ -153,12 +148,12 @@ namespace Punica.Reflection
 
         private static MethodInfo? _firstOrDefault;
 
-        public static MethodInfo FirstOrDefault(Type type) => (_firstOrDefault ??= new Func<IEnumerable<object>, object>(Enumerable.FirstOrDefault).GetMethodInfo().GetGenericMethodDefinition())
+        public static MethodInfo FirstOrDefault(Type type) => (_firstOrDefault ??= new Func<IEnumerable<object>, object?>(Enumerable.FirstOrDefault).GetMethodInfo().GetGenericMethodDefinition())
             .MakeGenericMethod(type);
 
         private static MethodInfo? _firstOrDefault_predicate;
 
-        public static MethodInfo FirstOrDefault_Predicate(Type type) => (_firstOrDefault_predicate ??= new Func<IEnumerable<object>, Func<object, bool>, object>(Enumerable.FirstOrDefault).GetMethodInfo().GetGenericMethodDefinition())
+        public static MethodInfo FirstOrDefault_Predicate(Type type) => (_firstOrDefault_predicate ??= new Func<IEnumerable<object>, Func<object, bool>, object?>(Enumerable.FirstOrDefault).GetMethodInfo().GetGenericMethodDefinition())
             .MakeGenericMethod(type);
 
         private static MethodInfo? _groupBy_keySelector;
@@ -220,12 +215,12 @@ namespace Punica.Reflection
 
         private static MethodInfo? _lastOrDefault;
 
-        public static MethodInfo LastOrDefault(Type type) => (_lastOrDefault ??= new Func<IEnumerable<object>, object>(Enumerable.LastOrDefault).GetMethodInfo().GetGenericMethodDefinition())
+        public static MethodInfo LastOrDefault(Type type) => (_lastOrDefault ??= new Func<IEnumerable<object>, object?>(Enumerable.LastOrDefault).GetMethodInfo().GetGenericMethodDefinition())
             .MakeGenericMethod(type);
 
         private static MethodInfo? _lastOrDefault_predicate;
 
-        public static MethodInfo LastOrDefault_Predicate(Type type) => (_lastOrDefault_predicate ??= new Func<IEnumerable<object>, Func<object, bool>, object>(Enumerable.LastOrDefault).GetMethodInfo().GetGenericMethodDefinition())
+        public static MethodInfo LastOrDefault_Predicate(Type type) => (_lastOrDefault_predicate ??= new Func<IEnumerable<object>, Func<object, bool>, object?>(Enumerable.LastOrDefault).GetMethodInfo().GetGenericMethodDefinition())
             .MakeGenericMethod(type);
 
         private static MethodInfo? _longCount;
@@ -245,7 +240,7 @@ namespace Punica.Reflection
 
         private static MethodInfo? _max_selector;
 
-        public static MethodInfo Max_Selector(Type source, Type result) => (_max_selector ??= new Func<IEnumerable<object>, Func<object, object>, object>(Enumerable.Max).GetMethodInfo().GetGenericMethodDefinition())
+        public static MethodInfo Max_Selector(Type source, Type result) => (_max_selector ??= new Func<IEnumerable<object>, Func<object, object>, object?>(Enumerable.Max).GetMethodInfo().GetGenericMethodDefinition())
             .MakeGenericMethod(source, result);
 
         private static MethodInfo? _min;
