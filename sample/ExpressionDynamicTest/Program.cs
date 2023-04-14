@@ -71,7 +71,7 @@ var error = "new{Id,FirstName as 'BuyerName', Account.Name, Account . Name , Chi
 
 var sql = "new{Id,FirstName as 'BuyerName', Account.Name, Account . Name , Childrens.Select(new{Name,Gender})}";
 
-var tokens = Tokenizer2.Tokenize(new TokenContext(sql, Expression.Parameter(typeof(Person), "arg")));
+var tokens = Tokenizer2.Tokenize(new TokenContext(sql, new MethodContext(Expression.Parameter(typeof(Person), "arg"))));
 
 
 Console.ReadLine();
