@@ -12,6 +12,11 @@ namespace Punica.Bp.EFCore.Querying
     {
         private readonly DbContext _dbContext;
         private static readonly MethodInfo WhereMethod = typeof(QueryBase).GetMethod(nameof(Where));
+        private static readonly MethodInfo _stringContainsMethod =
+            typeof(string).GetMethod(nameof(string.Contains), new Type[] { typeof(string) });
+
+        private static readonly MethodInfo _enubarelContainsMethod =
+            typeof(Enumerable).GetMethod(nameof(Enumerable.Contains));
 
         public QueryBase(DbContext dbContext)
         {
@@ -99,6 +104,7 @@ namespace Punica.Bp.EFCore.Querying
                         //      {
                         //          Id = a.Id,
                         //          Status = a.Status,
+                        //          Buyer = new { Name, Email}
                         //          Products = a.Items.Select(i => new
                         //          {
                         //              Id = i.Id,

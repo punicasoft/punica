@@ -12,7 +12,7 @@ namespace Punica.Bp.EFCore.Query.Parsing
         {
             if(left.Type != right.Type)
             {
-                throw new ArgumentException($"Mismatch types members in {left}, {right}");
+                //throw new ArgumentException($"Mismatch types members in {left}, {right}");
             }
 
             Left = left;
@@ -20,12 +20,12 @@ namespace Punica.Bp.EFCore.Query.Parsing
         }
 
 
-        public static Operands Create(object left, object right, Expression arg)
+        public static Operands Create(object left, object right, Expression arg, ParaObject paras)
         {
 
             if (left is Token t1 && right is Token t2)
             {
-                return Create(t1, t2, arg);
+                return Create(t1, t2, arg, paras);
             }
 
             if (left is Expression e1 && right is Expression e2)
@@ -35,18 +35,18 @@ namespace Punica.Bp.EFCore.Query.Parsing
 
             if (left is Token tt1 && right is Expression ee2)
             {
-                return Create(tt1, ee2, arg);
+                return Create(tt1, ee2, arg, paras);
             }
 
             if (left is Expression ee1 && right is Token tt2)
             {
-                return Create(ee1, tt2, arg);
+                return Create(ee1, tt2, arg, paras);
             }
 
             throw new ArgumentException($"Invalid arguments in {nameof(left)} or {nameof(right)}");
         }
 
-        public static Operands Create(Token left, Expression right, Expression arg)
+        public static Operands Create(Token left, Expression right, Expression arg, ParaObject paras)
         {
             if (left.Type == TokenType.Member)
             {
@@ -55,12 +55,13 @@ namespace Punica.Bp.EFCore.Query.Parsing
             }
             else
             {
-               var e1 = Expression.Constant(ParseString(right.Type, left.Value));
+                var val = ParseString(right.Type, left.Value, ref paras);
+               var e1 = Expression.Constant(paras.para1);
                return new Operands(e1, right);
             }
         }
 
-        public static Operands Create(Expression left, Token right, Expression arg)
+        public static Operands Create(Expression left, Token right, Expression arg, ParaObject paras)
         {
             if (right.Type == TokenType.Member)
             {
@@ -69,12 +70,13 @@ namespace Punica.Bp.EFCore.Query.Parsing
             }
             else
             {
-                var e2 = Expression.Constant(ParseString(left.Type, right.Value));
+                var val = ParseString(left.Type, right.Value, ref paras);
+                var e2 = Expression.Constant(paras.para1);
                 return new Operands(left, e2);
             }
         }
 
-        public static Operands Create(Token left, Token right, Expression arg)
+        public static Operands Create(Token left, Token right, Expression arg, ParaObject paras)
         {
             if (left.Type == right.Type)
             {
@@ -102,43 +104,51 @@ namespace Punica.Bp.EFCore.Query.Parsing
             if (left.Type == TokenType.Member)
             {
                 var e1 = GetProperty(left.Value, arg);
-                var e2 = Expression.Constant(ParseString(e1.Type, right.Value));
+                var val = ParseString(e1.Type, right.Value, ref paras);
+                var e2 = Expression.Field(Expression.Constant(paras), typeof(ParaObject), nameof(paras.para1));
                 return new Operands(e1, e2);
             }
             else if (right.Type == TokenType.Member)
             {
-                var e2 = GetProperty(right.Value, arg); 
-                var e1 = Expression.Constant(ParseString(e2.Type, left.Value));
+                var e2 = GetProperty(right.Value, arg);
+                var val = ParseString(e2.Type, left.Value, ref paras);
+                var e1 = Expression.Field(Expression.Constant(paras), typeof(ParaObject), nameof(paras.para1));
                 return new Operands(e1, e2);
             }
 
             throw new ArgumentException($"Mismatch types in {left.Value}, {right.Value}");
         }
 
-        public static object? ParseString(Type type, string input)
+        public static object? ParseString(Type type, string input, ref ParaObject para)
         {
             if (type == typeof(string))
             {
+                para.para1 = input;
                 return input;
             }
 
             if (type == typeof(int))
             {
-                return int.Parse(input);
+                para.para1 = int.Parse(input);
+                return para.para1;
             }
 
             if (type == typeof(double))
             {
-                return double.Parse(input);
+                para.para1 = double.Parse(input);
+                return para.para1;
             }
 
             if (type == typeof(bool))
             {
-                return bool.Parse(input);
+                para.para1 = bool.Parse(input);
+                return para.para1;
             }
 
             var converter = TypeDescriptor.GetConverter(type);
-            return converter.ConvertFromInvariantString(input);
+            var val= converter.ConvertFromInvariantString(input);
+            para.para1 = val;
+            return val;
         }
 
         public static Expression GetProperty(string name, Expression expression)

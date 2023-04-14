@@ -118,26 +118,26 @@ namespace Punica.Bp.EFCore.Query.Parsing
                         break;
 
                     case "<":
-                        var rightOperand4 = Convert.ToInt32(evaluationStack.Pop());
-                        var leftOperand4 = Convert.ToInt32(evaluationStack.Pop());
+                        var rightOperand4 = evaluationStack.Pop();
+                        var leftOperand4 = evaluationStack.Pop();
                         evaluationStack.Push(evaluator.LessThan(leftOperand4, rightOperand4));
                         break;
 
                     case ">=":
-                        var rightOperand5 = Convert.ToInt32(evaluationStack.Pop());
-                        var leftOperand5 = Convert.ToInt32(evaluationStack.Pop());
+                        var rightOperand5 = evaluationStack.Pop();
+                        var leftOperand5 = evaluationStack.Pop();
                         evaluationStack.Push(evaluator.GreaterOrEqual(leftOperand5, rightOperand5));
                         break;
 
                     case ">":
-                        var rightOperand6 = Convert.ToInt32(evaluationStack.Pop());
-                        var leftOperand6 = Convert.ToInt32(evaluationStack.Pop());
+                        var rightOperand6 = evaluationStack.Pop();
+                        var leftOperand6 = evaluationStack.Pop();
                         evaluationStack.Push(evaluator.GreaterThan(leftOperand6, rightOperand6));
                         break;
 
                     case "<=":
-                        var rightOperand7 = Convert.ToInt32(evaluationStack.Pop());
-                        var leftOperand7 = Convert.ToInt32(evaluationStack.Pop());
+                        var rightOperand7 = evaluationStack.Pop();
+                        var leftOperand7 = evaluationStack.Pop();
                         evaluationStack.Push(evaluator.LessOrEqual(leftOperand7, rightOperand7));
                         break;
 
@@ -291,47 +291,155 @@ namespace Punica.Bp.EFCore.Query.Parsing
             return tokens;
         }
 
+
         //static int GetPrecedence(string op)
         //{
         //    switch (op)
         //    {
-        //        case "&&":
-        //            return 2;
-        //        case "||":
-        //            return 1;
-        //        case "==":
-        //        case "!=":
-        //            return 3;
+        //        case "!":
+        //            return 5;
         //        case "<":
         //        case "<=":
         //        case ">":
         //        case ">=":
         //            return 4;
+        //        case "==":
+        //        case "!=":
+        //            return 3;
+        //        case "&&":
+        //            return 2;
+        //        case "||":
+        //            return 1;
         //        default:
         //            return -1;
         //    }
         //}
 
-        static int GetPrecedence(string op)
+        private static int GetPrecedence(string op)
         {
             switch (op)
             {
                 case "!":
-                    return 5;
-                case "&&":
-                    return 2;
-                case "||":
-                    return 1;
+                    return 6;
                 case "==":
                 case "!=":
-                    return 3;
+                    return 5;
                 case "<":
                 case "<=":
                 case ">":
                 case ">=":
                     return 4;
+                case "&&":
+                    return 3;
+                case "||":
+                    return 2;
+                case "+":
+                case "-":
+                    return 1;
+                case "*":
+                case "/":
+                case "%":
+                    return 0;
                 default:
                     return -1;
+            }
+        }
+
+        public static int GetOperatorPrecedence(string op)
+        {
+            switch (op)
+            {
+
+                // Conditional Operators
+                case "?:":
+                case "??":
+                    return 14;
+
+                // Assignment Operators
+                case "=":
+                    return 13;
+                case "+=":
+                case "-=":
+                    return 13;
+                case "*=":
+                case "/=":
+                case "%=":
+                    return 13;
+                case "&=":
+                case "|=":
+                case "^=":
+                    return 13;
+                case "<<=":
+                case ">>=":
+                    return 13;
+
+                // Logical Operators
+                case "&&":
+                    return 11;
+                case "||":
+                    return 12;
+                case "!":
+                    return 10;
+
+                //// Type Operators
+                //case "as":
+                //case "is":
+                //    return 7;
+
+                // Equality Operators
+                case "==":
+                case "!=":
+                    return 7;
+
+                // Relational Operators
+                case ">":
+                case "<":
+                case ">=":
+                case "<=":
+                    return 6;
+
+                // Arithmetic Operators
+                case "^":
+                    return 4;
+                case "*": 
+                case "/":
+                case "%":
+                    return 3;
+                case "+":
+                case "-":
+                    return 2;
+                case "++":
+                case "--":
+                    return 1;
+                case "(":
+                case ")":
+                    return -1;
+
+
+
+                //// Bitwise Operators
+                //case "&":
+                //    return 8;
+                //case "|":
+                //    return 9;
+                //case "^":
+                //    return 10;
+                //case "~":
+                //    return 1;
+                //case "<<":
+                //case ">>":
+                //    return 5;
+
+                //// Miscellaneous Operators
+                //case "sizeof":
+                //case "typeof":
+                //case "delegate":
+                //    return 1;
+                //case "new":
+                //    return 2;
+
+                default:
+                    throw new ArgumentException("Invalid operator", nameof(op));
             }
         }
 

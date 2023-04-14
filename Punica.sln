@@ -51,9 +51,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Punica.Extensions.Dependenc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Punica.Extensions.DependencyInjection.Tests", "test\Punica.Extensions.DependencyInjection.Tests\Punica.Extensions.DependencyInjection.Tests.csproj", "{F16F4A8F-0C67-401E-A868-8D17688467BF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Punica.Bp.Application", "src\Punica.Bp.Application\Punica.Bp.Application.csproj", "{F6C78235-DA8E-4F9E-B586-7825DCBEFA7B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Punica.Bp.Application", "src\Punica.Bp.Application\Punica.Bp.Application.csproj", "{F6C78235-DA8E-4F9E-B586-7825DCBEFA7B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Punica.Bp.Application.EFCore", "src\Punica.Bp.Application.EFCore\Punica.Bp.Application.EFCore.csproj", "{F5C7D8E0-A559-4862-ADF8-1FB4EAAFEABA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Punica.Bp.Application.EFCore", "src\Punica.Bp.Application.EFCore\Punica.Bp.Application.EFCore.csproj", "{F5C7D8E0-A559-4862-ADF8-1FB4EAAFEABA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpressionDynamicTest", "sample\ExpressionDynamicTest\ExpressionDynamicTest.csproj", "{87DEB432-E6F4-4808-9D32-2AB9F19A5557}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -153,6 +155,10 @@ Global
 		{F5C7D8E0-A559-4862-ADF8-1FB4EAAFEABA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5C7D8E0-A559-4862-ADF8-1FB4EAAFEABA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F5C7D8E0-A559-4862-ADF8-1FB4EAAFEABA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87DEB432-E6F4-4808-9D32-2AB9F19A5557}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87DEB432-E6F4-4808-9D32-2AB9F19A5557}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87DEB432-E6F4-4808-9D32-2AB9F19A5557}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87DEB432-E6F4-4808-9D32-2AB9F19A5557}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -181,6 +187,7 @@ Global
 		{F16F4A8F-0C67-401E-A868-8D17688467BF} = {4D2181F3-A671-4278-B79E-5239A7D5B5A0}
 		{F6C78235-DA8E-4F9E-B586-7825DCBEFA7B} = {6E5DD82A-8835-41DC-A5EE-4219BEE7B80C}
 		{F5C7D8E0-A559-4862-ADF8-1FB4EAAFEABA} = {6E5DD82A-8835-41DC-A5EE-4219BEE7B80C}
+		{87DEB432-E6F4-4808-9D32-2AB9F19A5557} = {27B52C05-D5C5-4802-8C8E-49FE4223F851}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B8B2037F-7F32-4DBA-B5B8-B6817F7677E0}
