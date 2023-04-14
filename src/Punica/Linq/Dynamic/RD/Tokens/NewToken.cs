@@ -5,13 +5,19 @@ using Punica.Linq.Expressions;
 
 namespace Punica.Linq.Dynamic.RD.Tokens
 {
-    public class NewToken : Operation, ITokenList
+    public class NewToken : Operation, ITokenList, IExpression
     {
        // public Expression MemberExpression { get; }
-        public IExpression? Parameter { get; }
+       // public IExpression? Parameter { get; }
         public List<IToken> Tokens { get; }
         public override short Precedence => 14;
         public override ExpressionType ExpressionType => ExpressionType.New;
+
+        public NewToken(IExpression? parameter)
+        {
+            Tokens = new List<IToken>();
+           // Parameter = parameter;
+        }
 
         public override Expression Evaluate(Stack<Expression> stack)
         {
@@ -49,12 +55,6 @@ namespace Punica.Linq.Dynamic.RD.Tokens
 
         }
 
-        public NewToken(IExpression? parameter)
-        {
-            Tokens = new List<IToken>();
-            Parameter = parameter;
-        }
-
         public void AddToken(IToken token)
         {
             Tokens.Add(token);
@@ -84,5 +84,9 @@ namespace Punica.Linq.Dynamic.RD.Tokens
         }
 
 
+        public Expression Evaluate()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

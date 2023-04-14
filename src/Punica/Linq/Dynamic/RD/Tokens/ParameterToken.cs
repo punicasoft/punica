@@ -7,15 +7,22 @@ namespace Punica.Linq.Dynamic.RD.Tokens
 {
     public class ParameterToken : IExpression
     {
-        private Expression _value;
+        private Expression? _value;
         private bool _evaluated;
-        private readonly IExpression _expression;
-        private readonly string _name;
+        private readonly IExpression? _expression;
+        private readonly string? _name;
+
+        /// <summary>
+        /// The Name of the parameter or variable.
+        /// </summary>
+        public string? Name => _name;
 
         public ParameterToken(ParameterExpression parameterExpression)
         {
             _value = parameterExpression;
+            _name = parameterExpression.Name;
             _evaluated = true;
+
         }
 
         public ParameterToken(IExpression expression, string name)
@@ -29,7 +36,7 @@ namespace Punica.Linq.Dynamic.RD.Tokens
         {
             if (!_evaluated)
             {
-                var memberExpression = _expression.Evaluate();
+                var memberExpression = _expression!.Evaluate();
 
                 if (memberExpression.Type.IsCollection(out var type))
                 {

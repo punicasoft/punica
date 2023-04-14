@@ -1,4 +1,6 @@
-﻿using System.Linq.Expressions;
+﻿using System;
+using System.Linq.Expressions;
+using Microsoft.VisualBasic;
 using Punica.Linq.Dynamic.RD.Tokens;
 using Punica.Linq.Dynamic.RD.Tokens.abstractions;
 
@@ -17,7 +19,7 @@ namespace Punica.Linq.Dynamic.RD
 
         public static RootToken Evaluate(TokenContext context)
         {
-            return new RootToken(context.Parameter, Tokenize(context));
+            return new RootToken(context.MethodContext.GetParameters(), Tokenize(context));
         }
 
         public static List<IToken> Tokenize(TokenContext context)
@@ -207,16 +209,16 @@ namespace Punica.Linq.Dynamic.RD
 
                     break;
                 default:
-                    if (Match(i, context.Text, out var key)) //TODO handle new?
+                    if (Match(i, context.Text, out var key))
                     {
                         token = Tokens[key];
-                        //tokens.Add(token);
                         i = i + key.Length - 1;
                         return i;
                     }
                     else
                     {
-                        i = Parse2(i, context, out token);
+                        i = Parse3(i, context, out token);
+
                     }
 
                     break;
@@ -225,243 +227,473 @@ namespace Punica.Linq.Dynamic.RD
             return i;
         }
 
-
-        private static char Peek(int i, TokenContext context, out int index)
+        /// Person.Name or Person() or Person.Select() or  Person.Select().ToList() 
+        public static int Parse3(int i, TokenContext context, out IToken token)
         {
-            var j = i + 1;
-            while (j < context.Text.Length) //&& !(char.IsWhiteSpace(expression[j]) || (char.IsPunctuation(expression[j])))
+            IExpression exp = context.MethodContext.GetParameter();
+            token = null;
+            var identifier = GetIdentifier(ref i, context);
+            i++;
+
+
+            //i = i + identifier.Length;
+
+            var literal = NextToken(ref i, context);
+            while (!string.IsNullOrEmpty(literal))
             {
-                if (char.IsWhiteSpace(context.Text[j]))
+                if (literal == ".")
+                {
+                    i++;
+                    if (!string.IsNullOrEmpty(identifier))
+                    {
+                        exp = new PropertyToken(exp, identifier);
+                    }
+                }
+                else if (literal == "(")
+                {
+                    context.MethodContext.NextDepth();
+                    context.MethodContext.AddParameter(exp);
+                    var methodToken = new MethodToken(identifier, exp, context.MethodContext.GetParameter());
+                    identifier = string.Empty;
+
+                    var parameter = new TokenList();
+                    i++;
+                    int depth = 1;
+
+                    while (i < context.Text.Length && depth > 0)
+                    {
+                        switch (context.Text[i])
+                        {
+                            case '(':
+                                throw new ArgumentException("Invalid Case Check algorithm"); // possibly not a option
+                            case ')':
+                                depth--;
+                                if (parameter.Tokens.Count > 0)
+                                {
+                                    methodToken.AddToken(parameter); // only add if it is on same level as there could be mix due to incorrect number of end curly brackets
+                                }
+                                break;
+                            case ',':
+                                methodToken.AddToken(parameter);
+                                parameter = new TokenList();
+                                context.MethodContext.MoveToNextArgument();
+                                break;
+                            default:
+                                {
+                                    i = GetToken(context, i, out var token2);
+
+                                    if (token2 != null)
+                                    {
+                                        parameter.AddToken(token2);
+                                    }
+
+                                    break;
+                                }
+                        }
+
+                        i++;
+                    }
+
+                    if (depth != 0)
+                    {
+                        throw new ArgumentException("Input contains mismatched parentheses.");
+                    }
+
+                    context.MethodContext.PreviousDepth();
+                    token = methodToken;
+                    exp = methodToken;
+
+                }
+                else if (literal == "{")
+                {
+                    if (identifier != "new")
+                    {
+                        throw new NotSupportedException($"Not able to handle {{ with this identifier {identifier}");
+                    }
+
+                    var newToken = new NewToken(context.MethodContext.GetParameter());
+                    identifier = string.Empty;
+
+                    var parameter = new TokenList();
+
+                    i++;
+                    int depth = 1;
+
+                    while (i < context.Text.Length && depth > 0)
+                    {
+                        switch (context.Text[i])
+                        {
+                            case '{':
+                                throw new ArgumentException("Invalid Case Check algorithm"); // possibly not a option
+                            case '}':
+                                depth--;
+                                if (parameter.Tokens.Count > 0)
+                                {
+                                    newToken.AddToken(parameter); // only add if it is on same level as there could be mix due to incorrect number of end curly brackets
+                                }
+                                break;
+                            case ',':
+                                newToken.AddToken(parameter);
+                                parameter = new TokenList();
+                                break;
+                            default:
+                                {
+                                    i = GetToken(context, i, out var token2);
+
+                                    if (token2 != null)
+                                    {
+                                        parameter.AddToken(token2);
+                                    }
+
+                                    break;
+                                }
+                        }
+
+                        i++;
+                    }
+
+                    if (depth != 0)
+                    {
+                        throw new ArgumentException("Input contains mismatched parentheses.");
+                    }
+                    
+                    token = newToken;
+                    exp = newToken;
+
+                }
+                else 
+                {
+                    i++;
+                    identifier = literal;
+                }
+
+                literal = NextToken(ref i, context);
+            }
+
+            if (!string.IsNullOrEmpty(identifier))
+            {
+                exp = new PropertyToken(exp, identifier);
+                token = new ValueToken(exp);
+            }
+
+            return i-1;
+
+        }
+
+        public static string NextToken(ref int i, TokenContext context)
+        {
+            for (; i < context.Text.Length; i++)
+            {
+                var c = context.Text[i];
+
+                // Skip whitespace
+                if (char.IsWhiteSpace(c))
                 {
                     continue;
                 }
 
-                index = j;
-                return context.Text[j];
-            }
-
-            index = j;
-            return '\0';
-        }
-
-        public static bool IsEndOfExpression(int i, TokenContext context, out int index)
-        {
-            index = i;
-
-            if (char.IsWhiteSpace(context.Text[i]))
-            {
-                for (int j = i + 1; j < context.Text.Length; j++)
+                if (c == '.')
                 {
-                    if (char.IsWhiteSpace(context.Text[j]))
-                    {
-                        continue;
-                    }
-
-                    if (context.Text[j] == '.')
-                    {
-                        index = j;
-                        return false;
-                    }
-
-                    index = j;
-                    return true;
+                    return ".";
                 }
-
-                return false;
-            }
-            else if (context.Text[i] == '(' || context.Text[i] == '{' || context.Text[i] == ',' || context.Text[i] == ')' || context.Text[i] == '}')
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-
-        private static IExpression GetStartExpression(ref int i, TokenContext context, out int j, out int index)
-        {
-            IExpression exp = context.Parameter;
-            // Handle operands
-            j = i + 1;
-
-            index = j;
-            // TODO : have custom punctuation   user, user.name, user . name, user.name.select()
-            while (j < context.Text.Length && !IsEndOfExpression(j, context, out index))  //&& !(char.IsWhiteSpace(expression[j]) || (char.IsPunctuation(expression[j])))
-            {
-
-                if (context.Text[index] == '.')
+                else if (c == '(')
                 {
-                    var property = context.Text.Substring(i, j - i);
-                    exp = new PropertyToken(exp, property);
-
-                    i = index + 1;
-
-                    while (i < context.Text.Length && char.IsWhiteSpace(context.Text[i]))
-                    {
-                        i++;
-                    }
-
-                    index = i;
+                    return "(";
                 }
-
-                j = index;
-
-                j++;
-            }
-
-            return exp;
-        }
-
-        //TODO parse at once for expressions
-        public static int Parse2(int i, TokenContext context, out IToken token)
-        {
-            token = null;
-            //Expression exp = context.Parameter;
-            //// Handle operands
-            //int j = i + 1;
-
-            //int index = j;
-            //// TODO : have custom punctuation   user, user.name, user . name, user.name.select()
-            //while (j < context.Text.Length && !IsEndOfExpression(j, context, out index))  //&& !(char.IsWhiteSpace(expression[j]) || (char.IsPunctuation(expression[j])))
-            //{
-
-            //    if (context.Text[index] == '.')
-            //    {
-            //        var property = context.Text.Substring(i, j - i);
-            //        exp = Expression.PropertyOrField(exp, property);
-
-            //        i = index + 1;
-
-            //        while (i < context.Text.Length && char.IsWhiteSpace(context.Text[i]))
-            //        {
-            //            i++;
-            //        }
-
-            //        index = i;
-            //    }
-
-            //    j = index;
-
-            //    j++;
-            //}
-
-            var exp = GetStartExpression(ref i, context, out var j, out var index);
-
-            if (i >= context.Text.Length || i == j)
-            {
-                return i;
-            }
-
-            var stringVal = context.Text.Substring(i, j - i); // 1 char length
-
-            j = GetMethod(context, out token, index, stringVal, exp, j);
-
-
-            i = j - 1;
-
-            return i;
-        }
-
-        private static int GetMethod(TokenContext context, out IToken? token, int index, string stringVal, IExpression exp, int j)
-        {
-            if (context.Text[index] == '(' || context.Text[index] == '{')
-            {
-                var openChar = context.Text[index];
-
-                var method = stringVal;
-
-                ITokenList methodToken = null;
-
-                if (method == "new")
+                else if (c == '[')
                 {
-                    methodToken = new NewToken(context.Parameter);
+                    return "[";
+                }
+                else if (c == '{')
+                {
+                    return "{";
+                }
+                if (Match(i, context.Text, out var key))
+                {
+                    return "";
+                }
+                else if (char.IsLetter(c))
+                {
+                    return GetIdentifier(ref i, context);
                 }
                 else
                 {
-                    methodToken = new MethodToken(method, exp, context.Depth + 1);
+                    return "";
                 }
-
-                var parameter = new TokenList();
-                j = index + 1;
-
-                int depth = 1;
-
-                while (j < context.Text.Length && depth > 0)
-                {
-                    switch (context.Text[j])
-                    {
-                        case '(':
-                        case '{':
-                            depth++; // possibly not a option
-                            throw new ArgumentException("Invalid Case Check algorithm");
-                            break;
-                        case ')':
-                            depth--;
-                            if (openChar == '(' && parameter.Tokens.Count>0)
-                            {
-                                methodToken.AddToken(parameter); // only add if it is on same level as there could be mix due to incorrect number of end curly brackets
-                            }
-
-                            break;
-                        case '}':
-                            depth--;
-                            if (openChar == '{' && parameter.Tokens.Count > 0)
-                            {
-                                methodToken.AddToken(parameter); // only add if it is on same level as there could be mix due to incorrect number of close parentheses
-                            }
-
-                            break;
-                        case ',':
-                            methodToken.AddToken(parameter);
-                            parameter = new TokenList();
-                            break;
-                        default:
-                        {
-                            //TODO: if it is method with function/expression then change the context with correct arg
-                            j = GetToken(new TokenContext(context.Text, context.Depth + 1, methodToken.Parameter), j,
-                                out var token2);
-
-                            if (token2 != null)
-                            {
-                                parameter.AddToken(token2);
-                            }
-
-                            break;
-                        }
-                    }
-
-                    j++;
-                }
-
-                if (depth != 0)
-                {
-                    throw new ArgumentException("Input contains mismatched parentheses.");
-                }
-
-                token = methodToken;
-
-                if (j < context.Text.Length && context.Text[j] == '.')
-                {
-                    j =  Parse2(j+1, new TokenContext(context.Text, context.Depth, methodToken as IExpression),
-                        out token);
-
-                    return j+1;
-                }
-
-                //j = j - 1;
-            }
-            else
-            {
-                exp = new PropertyToken(exp, stringVal);
-                token = new ValueToken(exp);
-                //exp = Expression.PropertyOrField(exp, stringVal);
-                // token = new ValueToken(exp);
             }
 
-            return j;
+            return null;
         }
+
+        public static string GetIdentifier(ref int i, TokenContext context)
+        {
+            // Handle operands
+            int j = i + 1;
+
+
+            // TODO : have custom punctuation
+            while (j < context.Text.Length && !(char.IsWhiteSpace(context.Text[j]) || (char.IsPunctuation(context.Text[j]))))
+            {
+                j++;
+            }
+            
+
+            var stringVal = context.Text.Substring(i, j - i);
+            i = j - 1;
+            return stringVal;
+            
+        }
+
+
+
+
+        //private static char Peek(int i, TokenContext context, out int index)
+        //{
+        //    var j = i + 1;
+        //    while (j < context.Text.Length) //&& !(char.IsWhiteSpace(expression[j]) || (char.IsPunctuation(expression[j])))
+        //    {
+        //        if (char.IsWhiteSpace(context.Text[j]))
+        //        {
+        //            continue;
+        //        }
+
+        //        index = j;
+        //        return context.Text[j];
+        //    }
+
+        //    index = j;
+        //    return '\0';
+        //}
+
+        //public static bool IsEndOfExpression(int i, TokenContext context, out int index)
+        //{
+        //    index = i;
+
+        //    if (char.IsWhiteSpace(context.Text[i]))
+        //    {
+        //        for (int j = i + 1; j < context.Text.Length; j++)
+        //        {
+        //            if (char.IsWhiteSpace(context.Text[j]))
+        //            {
+        //                continue;
+        //            }
+
+        //            if (context.Text[j] == '.')
+        //            {
+        //                index = j;
+        //                return false;
+        //            }
+
+        //            index = j;
+        //            return true;
+        //        }
+
+        //        return false;
+        //    }
+        //    else if (context.Text[i] == '(' || context.Text[i] == '{' || context.Text[i] == ',' || context.Text[i] == ')' || context.Text[i] == '}')
+        //    {
+        //        return true;
+        //    }
+        //    else
+        //    {
+        //        return false;
+        //    }
+        //}
+
+
+        //private static IExpression GetStartExpression(ref int i, TokenContext context, out int j, out int index)
+        //{
+        //    IExpression exp = context.MethodContext.GetParameter();
+        //    // Handle operands
+        //    j = i + 1;
+
+        //    index = j;
+        //    // TODO : have custom punctuation   user, user.name, user . name, user.name.select()
+        //    while (j < context.Text.Length && !IsEndOfExpression(j, context, out index))  //&& !(char.IsWhiteSpace(expression[j]) || (char.IsPunctuation(expression[j])))
+        //    {
+
+        //        if (context.Text[index] == '.')
+        //        {
+        //            var property = context.Text.Substring(i, j - i);
+        //            exp = new PropertyToken(exp, property);
+
+        //            i = index + 1;
+
+        //            while (i < context.Text.Length && char.IsWhiteSpace(context.Text[i]))
+        //            {
+        //                i++;
+        //            }
+
+        //            index = i;
+        //        }
+
+        //        j = index;
+
+        //        j++;
+        //    }
+
+        //    return exp;
+        //}
+
+        ////TODO detect lambda expressions and use correct one
+        //public static int Parse2(int i, TokenContext context, out IToken token)
+        //{
+        //    token = null;
+        //    //Expression exp = context.Parameter;
+        //    //// Handle operands
+        //    //int j = i + 1;
+
+        //    //int index = j;
+        //    //// TODO : have custom punctuation   user, user.name, user . name, user.name.select()
+        //    //while (j < context.Text.Length && !IsEndOfExpression(j, context, out index))  //&& !(char.IsWhiteSpace(expression[j]) || (char.IsPunctuation(expression[j])))
+        //    //{
+
+        //    //    if (context.Text[index] == '.')
+        //    //    {
+        //    //        var property = context.Text.Substring(i, j - i);
+        //    //        exp = Expression.PropertyOrField(exp, property);
+
+        //    //        i = index + 1;
+
+        //    //        while (i < context.Text.Length && char.IsWhiteSpace(context.Text[i]))
+        //    //        {
+        //    //            i++;
+        //    //        }
+
+        //    //        index = i;
+        //    //    }
+
+        //    //    j = index;
+
+        //    //    j++;
+        //    //}
+
+        //    var exp = GetStartExpression(ref i, context, out var j, out var index);
+
+        //    if (i >= context.Text.Length || i == j)
+        //    {
+        //        return i;
+        //    }
+
+        //    var stringVal = context.Text.Substring(i, j - i); // 1 char length
+
+        //    j = GetMethod(context, out token, index, stringVal, exp, j);
+
+
+        //    i = j - 1;
+
+        //    return i;
+        //}
+
+        //private static int GetMethod(TokenContext context, out IToken? token, int index, string stringVal, IExpression exp, int j)
+        //{
+        //    if (context.Text[index] == '(' || context.Text[index] == '{')
+        //    {
+        //        var openChar = context.Text[index];
+
+        //        var isMethod = false;
+        //        var method = stringVal;
+
+        //        ITokenList methodToken = null;
+
+        //        if (method == "new")
+        //        {
+        //            methodToken = new NewToken(context.MethodContext.GetParameter());
+        //        }
+        //        else
+        //        {
+        //            isMethod = true;
+        //            context.MethodContext.NextDepth();
+        //            context.MethodContext.AddParameter(exp);
+        //            methodToken = new MethodToken(method, exp, context.MethodContext.GetParameter());
+        //        }
+
+        //        var parameter = new TokenList();
+        //        j = index + 1;
+
+        //        int depth = 1;
+
+        //        while (j < context.Text.Length && depth > 0)
+        //        {
+        //            switch (context.Text[j])
+        //            {
+        //                case '(':
+        //                case '{':
+        //                    throw new ArgumentException("Invalid Case Check algorithm"); // possibly not a option
+        //                case ')':
+        //                    depth--;
+        //                    if (openChar == '(' && parameter.Tokens.Count > 0)
+        //                    {
+        //                        methodToken.AddToken(parameter); // only add if it is on same level as there could be mix due to incorrect number of end curly brackets
+        //                    }
+
+        //                    break;
+        //                case '}':
+        //                    depth--;
+        //                    if (openChar == '{' && parameter.Tokens.Count > 0)
+        //                    {
+        //                        methodToken.AddToken(parameter); // only add if it is on same level as there could be mix due to incorrect number of close parentheses
+        //                    }
+
+        //                    break;
+        //                case ',':
+        //                    methodToken.AddToken(parameter);
+        //                    parameter = new TokenList();
+        //                    if (isMethod)
+        //                    {
+        //                        context.MethodContext.MoveToNextArgument(); // TODO: add proper parameters next arguments
+        //                    }
+        //                    break;
+        //                default:
+        //                    {
+        //                        j = GetToken(context, j, out var token2);
+
+        //                        if (token2 != null)
+        //                        {
+        //                            parameter.AddToken(token2);
+        //                        }
+
+        //                        break;
+        //                    }
+        //            }
+
+        //            j++;
+        //        }
+
+        //        if (depth != 0)
+        //        {
+        //            throw new ArgumentException("Input contains mismatched parentheses.");
+        //        }
+
+        //        if (isMethod)
+        //        {
+        //            context.MethodContext.PreviousDepth(); // TODO: add proper parameters next arguments
+        //        }
+
+        //        token = methodToken;
+
+        //        if (j < context.Text.Length && context.Text[j] == '.')
+        //        {
+        //            //TODO fix chaining of methods instead of using parameters
+        //            context.MethodContext.NextDepth(); // this is incorrect depth but has to use to chain properly
+        //            context.MethodContext.AddParameter(methodToken as IExpression); //TODO: has error due to passing as parameter
+        //            j = Parse2(j + 1, context, out token);
+
+        //            context.MethodContext.PreviousDepth(); // temp fix additional depth
+        //            return j + 1;
+        //        }
+
+        //    }
+        //    else
+        //    {
+        //        exp = new PropertyToken(exp, stringVal);
+        //        token = new ValueToken(exp);
+        //        //exp = Expression.PropertyOrField(exp, stringVal);
+        //        // token = new ValueToken(exp);
+        //    }
+
+        //    return j;
+        //}
 
         private static int Parse(int i, string expression, out IToken token)
         {
@@ -519,58 +751,24 @@ namespace Punica.Linq.Dynamic.RD
             return false;
         }
 
-        //private static int AddCurlyParenthesesContent(string expression, int i, out IToken token)
-        //{
-        //    int j = i + 1;
-
-        //    int depth = 1;
-
-        //    while (j < expression.Length && depth > 0)
-        //    {
-        //        switch (expression[j])
-        //        {
-        //            case '{':
-        //                depth++;
-        //                break;
-        //            case '}':
-        //                depth--;
-        //                break;
-        //            default:
-        //                break;
-        //        }
-
-        //        j++;
-        //    }
-
-        //    if (depth != 0)
-        //    {
-        //        throw new ArgumentException("Input contains mismatched parentheses.");
-        //    }
-
-        //    var innerExp = expression.Substring(i + 1, j - i - 2);
-        //    token = new ValueToken(Expression.Constant(innerExp));
-        //    i = j - 1;
-        //    return i;
-        //}
-
         private static int AddParameter(TokenContext context, int i, out IToken token)
         {
-            if (context.ParameterInstance == null)
+            if (context.VariablesInstance == null)
             {
                 throw new ArgumentException("Parameters not supplied");
             }
 
             int j = i + 1;
-            while (j < context.Text.Length && !(char.IsWhiteSpace(context.Text[j])))
+            while (j < context.Text.Length && !(char.IsPunctuation(context.Text[j])))
             {
                 j++;
             }
 
-            var stringVal = context.Text.Substring(i, j - i);
+            var stringVal = context.Text.Substring(i+1, j - i - 1);
 
 
 
-            token = new ValueToken(Expression.PropertyOrField(context.ParameterInstance, stringVal));
+            token = new ValueToken(Expression.PropertyOrField(context.VariablesInstance, stringVal));
             i = j - 1;
 
             return i;
@@ -610,59 +808,7 @@ namespace Punica.Linq.Dynamic.RD
             return i;
         }
 
-        //private static int AddOpenParenthsesOrMethodContent(string expression, List<IToken> tokens, int i)
-        //{
-        //    var count = tokens.Count;
-
-        //    if (count > 0)
-        //    {
-        //        if (tokens[count - 1].TokenType == TokenType.Member)
-        //        {
-        //            int j = i + 1;
-
-        //            int depth = 1;
-
-        //            while (j < expression.Length && depth > 0)
-        //            {
-        //                switch (expression[j])
-        //                {
-        //                    case '(':
-        //                        depth++;
-        //                        break;
-        //                    case ')':
-        //                        depth--;
-        //                        break;
-        //                    default:
-        //                        break;
-        //                }
-
-        //                j++;
-        //            }
-
-        //            if (depth != 0)
-        //            {
-        //                throw new ArgumentException("Input contains mismatched parentheses.");
-        //            }
-
-        //            var innerExp = expression.Substring(i + 1, j - i - 2);
-
-        //            //tokens[count - 1] = new Token(tokens[count - 1].Value, TokenType.Operator, Operator.Method); //set previous token as a method
-        //            tokens.Add(new ValueToken(Expression.Constant(innerExp)));
-
-        //            i = j - 1;
-        //        }
-        //        else
-        //        {
-        //            tokens.Add(TokenCache.LeftParenthesis);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        tokens.Add(TokenCache.LeftParenthesis);
-        //    }
-
-        //    return i;
-        //}
+   
 
         private static int AddString(string expression, int i, char c, out IToken token)
         {

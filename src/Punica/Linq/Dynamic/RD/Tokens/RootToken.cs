@@ -5,35 +5,51 @@ namespace Punica.Linq.Dynamic.RD.Tokens
 {
     public class RootToken : Operation, ITokenList
     {
-        public IExpression? Parameter { get; set; }
+        //public IExpression? Parameter { get; set; }
+        private readonly ParameterToken[] _parameters;
         public List<IToken> Tokens { get; }
 
         public override short Precedence => 0;
         public override ExpressionType ExpressionType => ExpressionType.Lambda;
 
 
-        public RootToken(IExpression? argExpression, List<IToken> tokens)
+        public RootToken(List<ParameterToken> argExpression, List<IToken> tokens)
         {
-            Parameter = argExpression;
+            _parameters = argExpression.ToArray();
             Tokens = tokens;
         }
 
         public override Expression Evaluate(Stack<Expression> stack)
         {
-            var expression = Process(Tokens);
+            var body = Process(Tokens);
 
-            if (Parameter == null)
+            if (_parameters.Length == 0)
             {
-                return Expression.Lambda(expression);
+                return Expression.Lambda(body);
             }
-           
-            return Expression.Lambda(expression, (ParameterExpression)Parameter.Evaluate());
+
+            //TODO try and see instead of using as lambda expression use as method call? but both need to be supported
+            //new { Account.Name , Account.Balance } is shorten of p => new { p.Account.Name, p.Account.Balance }
+            // Select(new { Account.Name , Account.Balance }) is persons.Select(p => new { p.Account.Name, p.Account.Balance })
+            // but it currently evaluate as  persons => persons.Select(p => new { p.Account.Name, p.Account.Balance })
+            return Expression.Lambda(body, GetParameters());
         }
 
 
         public void AddToken(IToken token)
         {
             throw new NotImplementedException();
+        }
+
+        private List<ParameterExpression> GetParameters()
+        {
+            var parameters = new List<ParameterExpression>();
+
+            foreach (var parameter in _parameters)
+            {
+                parameters.Add((ParameterExpression)parameter.Evaluate());
+            }
+            return parameters;
         }
     }
 }

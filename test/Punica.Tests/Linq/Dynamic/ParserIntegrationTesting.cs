@@ -1,7 +1,9 @@
 ﻿using System.Linq.Expressions;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using Punica.Linq.Dynamic;
 using Punica.Linq.Dynamic.RD;
+using Punica.Linq.Dynamic.RD.Tokens.abstractions;
 using Punica.Tests.Utils;
 
 namespace Punica.Tests.Linq.Dynamic
@@ -34,7 +36,9 @@ namespace Punica.Tests.Linq.Dynamic
 
         private Expression<Func<T1, TResult>> GetExpression<T1, TResult>(string expression)
         {
-            var rootToken = Tokenizer2.Evaluate(new TokenContext(expression, Expression.Parameter(typeof(T1), "arg")));
+            //var rootToken = Tokenizer2.Evaluate(new TokenContext(expression, Expression.Parameter(typeof(T1), "arg")));
+            var methodContext = new MethodContext(Expression.Parameter(typeof(T1), "arg"));
+            var rootToken = Tokenizer2.Evaluate(new TokenContext(expression, methodContext));
 
             var resultExpression = rootToken.Evaluate(null);
             return (Expression<Func<T1, TResult>>)resultExpression;
@@ -42,7 +46,9 @@ namespace Punica.Tests.Linq.Dynamic
 
         private LambdaExpression GetGeneralExpression<T1, TResult>(string expression)
         {
-            var rootToken = Tokenizer2.Evaluate(new TokenContext(expression, Expression.Parameter(typeof(T1), "arg")));
+            // var rootToken = Tokenizer2.Evaluate(new TokenContext(expression, Expression.Parameter(typeof(T1), "arg")));
+            var methodContext = new MethodContext(Expression.Parameter(typeof(T1), "arg"));
+            var rootToken = Tokenizer2.Evaluate(new TokenContext(expression, methodContext));
 
             var resultExpression = rootToken.Evaluate(null);
             return (LambdaExpression)resultExpression;
@@ -167,6 +173,8 @@ namespace Punica.Tests.Linq.Dynamic
 
             Assert.Equal(x / y, actual);
         }
+
+
 
         [Theory]
         [InlineData(7, 8)]
@@ -435,7 +443,8 @@ namespace Punica.Tests.Linq.Dynamic
             string stringExp = "new{FirstName,Children.Select(new{Name,Gender}).ToList() as 'Kids'}";
             var resultExpression = GetGeneralExpression<Person, object>(stringExp);
             var actual = resultExpression.Compile().DynamicInvoke(Data.Persons[0]);
-            var expected = JsonSerializer.Serialize(new { Data.Persons[0].FirstName, Kids = Data.Persons[0].Children.Select(c => new { c.Name, c.Gender }) });
+
+            var expected = JsonSerializer.Serialize(new { Data.Persons[0].FirstName, Kids = Data.Persons[0].Children.Select(c => new { c.Name, c.Gender }).ToList() });
             var actualJson = JsonSerializer.Serialize(actual);
             Assert.Equal(expected, actualJson);
         }
@@ -443,13 +452,148 @@ namespace Punica.Tests.Linq.Dynamic
         [Fact]
         public void Evaluate_WhenExpressionIsQueryable_ShouldWork()
         {
-            string stringExp = "this.Select( new { FirstName , Children.Select(new {Name , Gender}).ToList() as 'Kids'} )";
-            var resultExpression = GetExpression<IQueryable<Person>, object>(stringExp);
-            var actual = resultExpression.Compile()(Data.Persons.AsQueryable());
+            string stringExp = "Select( new { FirstName , Children.Select(new {Name , Gender}).ToList() as 'Kids'} )";
+            var resultExpression = GetGeneralExpression<IQueryable<Person>, object>(stringExp);
+            var actual = resultExpression.Compile().DynamicInvoke(Data.Persons.AsQueryable());
             var expected = JsonSerializer.Serialize(Data.Persons.AsQueryable().Select(p => new { p.FirstName, Kids = p.Children.Select(c => new { c.Name, c.Gender }) }));
             var actualJson = JsonSerializer.Serialize(actual);
             Assert.Equal(expected, actualJson);
         }
+
+        [Fact]
+        public void Evaluate_WhenExpressionIsCondition_ShouldWork_2()
+        {
+            string stringExp = $"IsMale?'Male':'Female'";
+            var resultExpression = GetGeneralExpression<Person, object>(stringExp);
+            var actual = resultExpression.Compile().DynamicInvoke(Data.Persons[0]);
+
+            var expected = Data.Persons[0].IsMarried ? "Male" : "Female";
+
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void Evaluate_WhenExpressionIsQueryableWithWhere_ShouldWork()
+        {
+            string stringExp = "Select( new { FirstName , Children.Select(new {Name , Gender}).ToList() as 'Kids'} ).Where(Kids.Any(Gender == 'Female'))";
+            var resultExpression = GetGeneralExpression<IQueryable<Person>, object>(stringExp);
+            var actual = resultExpression.Compile().DynamicInvoke(Data.Persons.AsQueryable());
+            var expected = JsonSerializer.Serialize(Data.Persons.AsQueryable()
+                .Select(p => new { p.FirstName, Kids = p.Children.Select(c => new { c.Name, c.Gender }) })
+                .Where(o => o.Kids.Any(k => k.Gender == "Female")));
+
+            var actualJson = JsonSerializer.Serialize(actual);
+            Assert.Equal(expected, actualJson);
+        }
+
+        [Theory]
+        [MemberData(nameof(TestData))]
+        public void Evaluate_WhenExpressionIsAverage_ShouldWork(string methodName, object expected)
+        {
+            string stringExp = $"Average({methodName})";
+            var resultExpression = GetGeneralExpression<List<Numbers>, object>(stringExp);
+            var actual = resultExpression.Compile().DynamicInvoke(Data.Num);
+
+            //var expected = Data.Num.Average(Expression.Lambda());
+            // IEnumerable<object> vals = (IEnumerable<object>)typeof(MyList).GetProperty(methodName).GetValue(Data.Collection);
+
+            //var expected = Data.Collection.Numbers.Average();
+
+            Assert.Equal(expected, actual);
+        }
+
+        public static IEnumerable<object[]> TestData =>
+            new List<object[]>
+            {
+                new object[] { nameof(Numbers.Marks), Data.Num.Average(n=> n.Marks) },
+                new object[] { nameof(Numbers.Prices), Data.Num.Average(n=> n.Prices) },
+                new object[] { nameof(Numbers.Area), Data.Num.Average(n=> n.Area) },
+                new object[] { nameof(Numbers.Length), Data.Num.Average(n=> n.Length) },
+                new object[] { nameof(Numbers.LongNumbers), Data.Num.Average(n=> n.LongNumbers) },
+
+                new object[] { nameof(Numbers.MarksN), Data.Num.Average(n=> n.MarksN) },
+                new object[] { nameof(Numbers.PricesN), Data.Num.Average(n=> n.PricesN) },
+                new object[] { nameof(Numbers.AreaN), Data.Num.Average(n=> n.AreaN) },
+                new object[] { nameof(Numbers.LengthN), Data.Num.Average(n=> n.LengthN) },
+                new object[] { nameof(Numbers.LongNumbersN), Data.Num.Average(n=> n.LongNumbersN) },
+            };
+
+        ///// TODO add date time add, and other operations, string operations, guid 
+
+        [Fact]
+        public void Evaluate_GroupJoin_ShouldWork()
+        {
+            Person magnus = new Person { FirstName = "Magnus" };
+            Person terry = new Person { FirstName = "Terry" };
+            Person charlotte = new Person { FirstName = "Charlotte" };
+
+            Pet barley = new Pet { Name = "Barley", Owner = terry };
+            Pet boots = new Pet { Name = "Boots", Owner = terry };
+            Pet whiskers = new Pet { Name = "Whiskers", Owner = charlotte };
+            Pet daisy = new Pet { Name = "Daisy", Owner = magnus };
+
+            List<Person> people = new List<Person> { magnus, terry, charlotte };
+            List<Pet> pets = new List<Pet> { barley, boots, whiskers, daisy };
+
+            // Create a list where each element is an anonymous
+            // type that contains a person's name and
+            // a collection of names of the pets they own.
+            var expected = people.GroupJoin(pets,
+                person => person,
+                pet => pet.Owner,
+                (person, petCollection) =>
+                    new
+                    {
+                        OwnerName = person.FirstName,
+                        Pets = petCollection.Select(pet => pet.Name)
+                    });
+
+
+            var para = new JoinPara()
+            {
+                pets = pets
+            };
+
+           // string stringExp = "people.GroupJoin(pets, person => person, pet => pet.Owner, (person, petCollection) => new { OwnerName = person.FirstName, Pets = petCollection.Select(pet => pet.Name) } )";
+
+            string stringExp = "GroupJoin(@pets, person, pet.Owner,  new { person.FirstName as 'OwnerName', petCollection.Select(Name) } as 'Pets' )";
+            //TODO: may be use _ but the issue with two types of parameters
+
+            // Genral expression
+            // var resultExpression = GetGeneralExpression<List<Person>, object>(stringExp);
+            var rootToken = Tokenizer2.Evaluate(new TokenContext(stringExp, new MethodContext(Expression.Parameter(typeof(List<Person>), "arg")), Expression.Constant(para)));
+
+            var resultExpression = rootToken.Evaluate(null);
+            var lambdaExpression = (LambdaExpression)resultExpression;
+            var actual = lambdaExpression.Compile().DynamicInvoke(people);
+        }
+
+        //[Fact]
+        //public void Evaluate_Join_ShouldWork()
+        //{
+        //    Person magnus = new Person { Name = "Hedlund, Magnus" };
+        //    Person terry = new Person { Name = "Adams, Terry" };
+        //    Person charlotte = new Person { Name = "Weiss, Charlotte" };
+
+        //    Pet barley = new Pet { Name = "Barley", Owner = terry };
+        //    Pet boots = new Pet { Name = "Boots", Owner = terry };
+        //    Pet whiskers = new Pet { Name = "Whiskers", Owner = charlotte };
+        //    Pet daisy = new Pet { Name = "Daisy", Owner = magnus };
+
+        //    List<Person> people = new List<Person> { magnus, terry, charlotte };
+        //    List<Pet> pets = new List<Pet> { barley, boots, whiskers, daisy };
+
+        //    // Create a list of Person-Pet pairs where
+        //    // each element is an anonymous type that contains a
+        //    // Pet's name and the name of the Person that owns the Pet.
+        //    var query =
+        //        people.Join(pets,
+        //            person => person,
+        //            pet => pet.Owner,
+        //            (person, pet) =>
+        //                new { OwnerName = person.FirstName, Pet = pet.Name });
+
+        //}
 
     }
 }

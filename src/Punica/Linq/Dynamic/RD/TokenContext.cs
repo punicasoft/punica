@@ -4,48 +4,59 @@ using Punica.Linq.Dynamic.RD.Tokens.abstractions;
 
 namespace Punica.Linq.Dynamic.RD
 {
+    /// <summary>
+    /// Arguments are external inputs to expressions
+    /// VariablesInstance is similar to arguments but used as a parameter for expressions so that sql conversion use it as a parameter //TODO: check whether you can merge Arguments and VariablesInstance together?
+    /// <see cref="MethodToken"/> for rest of details. but there could be lambda expression at <see cref="RootToken"/> level
+    /// </summary>
     public class TokenContext
     {
         public string Text { get; }
 
-        public int Depth { get; }
+        /// <summary>
+        /// Used to pass parameters for expressions @param where param is a property/field of VariablesInstance
+        /// </summary>
+        public Expression? VariablesInstance { get; }
 
-        public Expression? ParameterInstance { get; }
+        /// <summary>
+        /// Arguments
+        /// </summary>
+        public IExpression[] Argumentss { get; }
 
-        public IExpression? Parameter { get;}
+        public MethodContext MethodContext { get; }
 
 
-        internal TokenContext(string text, int depth, IExpression? parameter = null, Expression? parameterInstance = null)
+        public TokenContext(string text, MethodContext? methodContext = null, Expression? variablesInstance = null, params IExpression[] args)
         {
             Text = text;
-            Depth = depth;
-            ParameterInstance = parameterInstance;
-            Parameter = parameter;
+            VariablesInstance = variablesInstance;
+            Argumentss = args;
+            MethodContext = methodContext ?? new MethodContext();
         }
 
-        public TokenContext(string text, IExpression? parameter = null, Expression? parameterInstance = null) : this(text, 0, parameter, parameterInstance)
-        {
-        }
 
-        public TokenContext(string text, ParameterExpression parameter, Expression? parameterInstance = null) : this(text, 0, new ParameterToken(parameter), parameterInstance)
-        {
-        }
-
-        //public TokenContext(TokenContext context)
+        //public TokenContext(string text, MethodContext? methodContext = null): this(text, methodContext, null)
         //{
-        //    Text = context.Text;
-        //    Depth = context.Depth + 1;
-        //    ParameterInstance = context.ParameterInstance;
-        //    Parameter = context.Parameter;
+
         //}
 
-        //public TokenContext(TokenContext context, ParameterExpression? arg)
+        //internal TokenContext(string text, int depth, IExpression? arguments = null, Expression? variablesInstance = null)
         //{
-        //    Text = context.Text;
-        //    Depth = context.Depth + 1;
-        //    ParameterInstance = context.ParameterInstance;
-        //    Parameter = arg;
+        //    Text = text;
+        //    Depth = depth;
+        //    VariablesInstance = variablesInstance;
+        //    Arguments = arguments;
         //}
+
+        //public TokenContext(string text, IExpression? parameter = null, Expression? parameterInstance = null) : this(text, 0, parameter, parameterInstance)
+        //{
+        //}
+
+        //public TokenContext(string text, ParameterExpression parameter) : this(text, 0, new ParameterToken(parameter), null)
+        //{
+        //}
+
+
 
     }
 }

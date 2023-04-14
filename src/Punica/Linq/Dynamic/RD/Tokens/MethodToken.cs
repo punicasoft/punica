@@ -6,38 +6,29 @@ using Punica.Reflection;
 
 namespace Punica.Linq.Dynamic.RD.Tokens
 {
+    /// <summary>
+    /// So method token you might need lambada expressions for each parameter if the parameter is function
+    /// </summary>
     public class MethodToken : Operation, ITokenList, IExpression
     {
-        private readonly int _depth;
+        //private readonly int _depth;
         public string MethodName { get; }
         public IExpression MemberExpression { get; } // TODO support chaining of methods
-        public IExpression? Parameter { get; }
+        private IExpression? Parameter { get; }
         public List<IToken> Tokens { get; }
         public override bool IsLeftAssociative => false;
         public override short Precedence => 14;
-        //public TokenType TokenType => TokenType.Member;
         public override ExpressionType ExpressionType => ExpressionType.Call;
         
 
-        public MethodToken(string methodName, IExpression memberExpression, int depth)
+        public MethodToken(string methodName, IExpression memberExpression, IExpression parameter)
         {
-            _depth = depth;
+           // _depth = depth;
             MethodName = methodName;
             MemberExpression = memberExpression;
             Tokens = new List<IToken>();
-
-            Parameter = new ParameterToken(memberExpression, "arg" + _depth);
-            //var memberExpression = MemberExpression.Evaluate();
-
-            //if (memberExpression.Type.IsCollection(out var type))
-            //{
-            //    _isCollection = true;
-            //    Parameter = Expression.Parameter(type, "arg" + _depth);
-            //}
-            //else
-            //{
-            //    Parameter = Expression.Parameter(memberExpression.Type, "arg" + _depth);
-            //}
+            Parameter = parameter;
+           // Parameter = new ParameterToken(memberExpression, "arg" + _depth);
         }
 
         public void AddToken(IToken token)
@@ -46,6 +37,11 @@ namespace Punica.Linq.Dynamic.RD.Tokens
         }
 
         public override Expression Evaluate(Stack<Expression> stack)
+        {
+            return Evaluate();
+        }
+
+        public Expression Evaluate()
         {
             var memberExpression = MemberExpression.Evaluate();
             var parameter = (ParameterExpression)Parameter.Evaluate();
@@ -65,37 +61,8 @@ namespace Punica.Linq.Dynamic.RD.Tokens
                 }
 
                 var methodHandler = MethodHandlerFactory.Instance.GetHandler(memberExpression.Type);
-               
+
                 return methodHandler.CallMethod(MethodName, memberExpression, parameter, expressions.ToArray());
-
-                //// call the method
-                //LambdaExpression e2;
-                //switch (MethodName) //TODO find the method better
-                //{
-                //    case "Any":
-                //        if (expressions.Count != 1)
-                //        {
-                //            throw new ArgumentException($"Invalid expression for Any");
-                //        }
-
-                //        var anyType = typeof(Func<,>).MakeGenericType(parameter.Type, typeof(bool));
-                //        e2 = Expression.Lambda(anyType, expressions[0], parameter);
-
-                //        return Expression.Call(EnumerableCachedMethodInfo.Any(parameter.Type), memberExpression, e2);
-                //    case "Select":
-                //        if (expressions.Count != 1)
-                //        {
-                //            throw new ArgumentException($"Invalid expression for Select");
-                //        }
-                //        var selectType = typeof(Func<,>).MakeGenericType(parameter.Type, expressions[0].Type);
-                //        e2 = Expression.Lambda(selectType, expressions[0], parameter);
-                //        return Expression.Call(EnumerableCachedMethodInfo.Select(parameter.Type, expressions[0].Type), memberExpression, e2);
-
-                //    case "ToList":
-                //        return Expression.Call(EnumerableCachedMethodInfo.ToList(parameter.Type), memberExpression); 
-                //    default:
-                //        throw new ArgumentException($"Invalid method {MethodName}");
-                //}
 
             }
             else
@@ -109,11 +76,6 @@ namespace Punica.Linq.Dynamic.RD.Tokens
                 //TODO find the method find the expression
                 // return Expression.Call(CachedMethodInfo.EnumerableContainsMethod(e1.Type), right);
             }
-        }
-
-        public Expression Evaluate()
-        {
-            return Evaluate(null);
         }
     }
 
