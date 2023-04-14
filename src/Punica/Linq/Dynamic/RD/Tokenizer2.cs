@@ -26,37 +26,50 @@ namespace Punica.Linq.Dynamic.RD
         {
             List<IToken> tokens = new List<IToken>();
 
-            for (int i = 0; i < context.Text.Length; i++)
+            while (context.CanRead)
             {
-                i = GetToken(context, i, out var token);
+                GetToken(context, out var token);
+
                 if (token != null)
                 {
                     tokens.Add(token);
                 }
 
+               // context.NextToken();
             }
+
+            //for (int i = 0; i < context.Text.Length; i++)
+            //{
+            //    i = GetToken(context, i, out var token);
+            //    if (token != null)
+            //    {
+            //        tokens.Add(token);
+            //    }
+
+            //}
 
             return tokens;
         }
 
-        private static int GetToken(TokenContext context, int i, out IToken? token)
+        private static void GetToken(TokenContext context, out IToken? token)
         {
             token = null;
-            char c = context.Text[i];
+            char c = context.Current; //context.Text[i];
 
-            // Skip whitespace
-            if (char.IsWhiteSpace(c))
-            {
-                return i;
-            }
+            //// Skip whitespace
+            //if (char.IsWhiteSpace(c))
+            //{
+            //    return i;
+            //}
 
             switch (c)
             {
                 case '!':
-                    if (i + 1 < context.Text.Length && context.Text[i + 1] == '=')
+                    context.NextToken();
+                    if (context.Current == '=')
                     {
+                        context.NextToken();
                         token = TokenCache.NotEqual;
-                        i++;
                     }
                     else
                     {
@@ -65,19 +78,21 @@ namespace Punica.Linq.Dynamic.RD
 
                     break;
                 case '"':
-                    i = AddString(context.Text, i, c, out token);
+                    AddString(context, c, out token);
                     break;
                 case '#':
                 case '$':
                     throw new NotImplementedException($"Character '{c}' not supported");
                 case '%':
+                    context.NextToken();
                     token = TokenCache.Modulo;
                     break;
                 case '&':
-                    if (i + 1 < context.Text.Length && context.Text[i + 1] == '&')
+                    context.NextToken();
+                    if (context.Current== '&')
                     {
+                        context.NextToken();
                         token = TokenCache.AndAlso;
-                        i++;
                     }
                     else
                     {
@@ -86,25 +101,30 @@ namespace Punica.Linq.Dynamic.RD
 
                     break;
                 case '\'':
-                    i = AddString(context.Text, i, c, out token);
+                    AddString(context, c, out token);
+                    context.NextToken();
                     break;
                 case '(':
-                    //i = AddOpenParenthsesOrMethodContent(expression, tokens, i);
+                    context.NextToken();
                     token = TokenCache.LeftParenthesis;
                     break;
                 case ')':
+                    context.NextToken();
                     token = TokenCache.RightParenthesis;
                     break;
                 case '*':
+                    context.NextToken();
                     token = TokenCache.Multiply;
                     break;
                 case '+':
+                    context.NextToken();
                     token = TokenCache.Add;
                     break;
                 case ',':
-                    //tokens.Add(new Token(",", TokenType.Sequence, Operator.Unknown));
+                    context.NextToken();
                     break;
                 case '-':
+                    context.NextToken();
                     token = TokenCache.Subtract;
                     break;
                 case '.':
@@ -112,6 +132,7 @@ namespace Punica.Linq.Dynamic.RD
                     //token = TokenCache.Dot;
                     break;
                 case '/':
+                    context.NextToken();
                     token = TokenCache.Divide;
                     break;
                 case '0':
@@ -124,18 +145,20 @@ namespace Punica.Linq.Dynamic.RD
                 case '7':
                 case '8':
                 case '9':
-                    i = AddNumber(context.Text, i, out token);
+                    AddNumber(context, out token);
+                    context.NextToken(); // To Skip spaces
                     break;
                 case ':':
-                    //token = TokenCache.Colon;
+                    context.NextToken();
                     break;
                 case ';':
                     throw new NotImplementedException($"Character ';' not supported");
                 case '<':
-                    if (i + 1 < context.Text.Length && context.Text[i + 1] == '=')
+                    context.NextToken();
+                    if (context.Current == '=')
                     {
+                        context.NextToken();
                         token = TokenCache.LessThanOrEqual;
-                        i++;
                     }
                     else
                     {
@@ -144,10 +167,11 @@ namespace Punica.Linq.Dynamic.RD
 
                     break;
                 case '=':
-                    if (i + 1 < context.Text.Length && context.Text[i + 1] == '=')
+                    context.NextToken();
+                    if (context.Current == '=')
                     {
+                        context.NextToken();
                         token = TokenCache.Equal;
-                        i++;
                     }
                     else
                     {
@@ -156,10 +180,11 @@ namespace Punica.Linq.Dynamic.RD
 
                     break;
                 case '>':
-                    if (i + 1 < context.Text.Length && context.Text[i + 1] == '=')
+                    context.NextToken();
+                    if (context.Current == '=')
                     {
+                        context.NextToken();
                         token = TokenCache.GreaterThanOrEqual;
-                        i++;
                     }
                     else
                     {
@@ -168,10 +193,11 @@ namespace Punica.Linq.Dynamic.RD
 
                     break;
                 case '?':
-                    if (i + 1 < context.Text.Length && context.Text[i + 1] == '?')
+                    context.NextToken();
+                    if (context.Current == '?')
                     {
+                        context.NextToken();
                         token = TokenCache.NullCoalescing;
-                        i++;
                     }
                     else
                     {
@@ -180,7 +206,7 @@ namespace Punica.Linq.Dynamic.RD
 
                     break;
                 case '@':
-                    i = AddParameter(context, i, out token);
+                    AddParameter(context, out token);
                     break;
                 case '[':
                     throw new NotImplementedException($"Character '{c}' not supported");
@@ -197,10 +223,11 @@ namespace Punica.Linq.Dynamic.RD
                     //i = AddCurlyParenthesesContent(expression, i, out token);
                     break;
                 case '|':
-                    if (i + 1 < context.Text.Length && context.Text[i + 1] == '|')
+                    context.NextToken();
+                    if (context.Current == '|')
                     {
+                        context.NextToken();
                         token = TokenCache.OrElse;
-                        i++;
                     }
                     else
                     {
@@ -209,41 +236,40 @@ namespace Punica.Linq.Dynamic.RD
 
                     break;
                 default:
-                    if (Match(i, context.Text, out var key))
+                    if (Match(context, out var key))
                     {
+                        context.SetPosition(context.CurrentPosition + key.Length);
                         token = Tokens[key];
-                        i = i + key.Length - 1;
-                        return i;
+                        context.NextToken();
                     }
                     else
                     {
-                        i = Parse3(i, context, out token);
-
+                        Parse3(context, out token);
                     }
 
                     break;
             }
 
-            return i;
+
         }
 
         /// Person.Name or Person() or Person.Select() or  Person.Select().ToList() 
-        public static int Parse3(int i, TokenContext context, out IToken token)
+        public static void Parse3(TokenContext context, out IToken token)
         {
             IExpression exp = context.MethodContext.GetParameter();
             token = null;
-            var identifier = GetIdentifier(ref i, context);
-            i++;
+            var identifier = GetIdentifier(context);
+            //i++;
+
+            //context.NextToken(false);
 
 
-            //i = i + identifier.Length;
-
-            var literal = NextToken(ref i, context);
+            var literal = NextToken(context);
             while (!string.IsNullOrEmpty(literal))
             {
                 if (literal == ".")
                 {
-                    i++;
+                    context.NextToken(false);
                     if (!string.IsNullOrEmpty(identifier))
                     {
                         exp = new PropertyToken(exp, identifier);
@@ -257,12 +283,12 @@ namespace Punica.Linq.Dynamic.RD
                     identifier = string.Empty;
 
                     var parameter = new TokenList();
-                    i++;
+                    context.NextToken();
                     int depth = 1;
 
-                    while (i < context.Text.Length && depth > 0)
+                    while (context.CanRead && depth > 0)
                     {
-                        switch (context.Text[i])
+                        switch (context.Current)
                         {
                             case '(':
                                 throw new ArgumentException("Invalid Case Check algorithm"); // possibly not a option
@@ -272,15 +298,17 @@ namespace Punica.Linq.Dynamic.RD
                                 {
                                     methodToken.AddToken(parameter); // only add if it is on same level as there could be mix due to incorrect number of end curly brackets
                                 }
+                                context.NextToken();
                                 break;
                             case ',':
                                 methodToken.AddToken(parameter);
                                 parameter = new TokenList();
                                 context.MethodContext.MoveToNextArgument();
+                                context.NextToken();
                                 break;
                             default:
                                 {
-                                    i = GetToken(context, i, out var token2);
+                                    GetToken(context, out var token2);
 
                                     if (token2 != null)
                                     {
@@ -291,7 +319,7 @@ namespace Punica.Linq.Dynamic.RD
                                 }
                         }
 
-                        i++;
+                       // context.NextToken();
                     }
 
                     if (depth != 0)
@@ -316,12 +344,12 @@ namespace Punica.Linq.Dynamic.RD
 
                     var parameter = new TokenList();
 
-                    i++;
+                    context.NextToken();
                     int depth = 1;
 
-                    while (i < context.Text.Length && depth > 0)
+                    while (context.CanRead && depth > 0)
                     {
-                        switch (context.Text[i])
+                        switch (context.Current)
                         {
                             case '{':
                                 throw new ArgumentException("Invalid Case Check algorithm"); // possibly not a option
@@ -331,14 +359,16 @@ namespace Punica.Linq.Dynamic.RD
                                 {
                                     newToken.AddToken(parameter); // only add if it is on same level as there could be mix due to incorrect number of end curly brackets
                                 }
+                                context.NextToken();
                                 break;
                             case ',':
                                 newToken.AddToken(parameter);
+                                context.NextToken();
                                 parameter = new TokenList();
                                 break;
                             default:
                                 {
-                                    i = GetToken(context, i, out var token2);
+                                    GetToken(context, out var token2);
 
                                     if (token2 != null)
                                     {
@@ -349,25 +379,25 @@ namespace Punica.Linq.Dynamic.RD
                                 }
                         }
 
-                        i++;
+                        //context.NextToken();
                     }
 
                     if (depth != 0)
                     {
                         throw new ArgumentException("Input contains mismatched parentheses.");
                     }
-                    
+
                     token = newToken;
                     exp = newToken;
 
                 }
-                else 
+                else
                 {
-                    i++;
+                   // i++;
                     identifier = literal;
                 }
 
-                literal = NextToken(ref i, context);
+                literal = NextToken(context);
             }
 
             if (!string.IsNullOrEmpty(identifier))
@@ -376,72 +406,80 @@ namespace Punica.Linq.Dynamic.RD
                 token = new ValueToken(exp);
             }
 
-            return i-1;
+           // return i - 1;
 
         }
 
-        public static string NextToken(ref int i, TokenContext context)
+        public static string NextToken(TokenContext context)
         {
-            for (; i < context.Text.Length; i++)
+
+            //for (; i < context.Text.Length; i++)
+            //{
+
+            var c = context.Current;
+
+            while (char.IsWhiteSpace(c))
             {
-                var c = context.Text[i];
-
-                // Skip whitespace
-                if (char.IsWhiteSpace(c))
-                {
-                    continue;
-                }
-
-                if (c == '.')
-                {
-                    return ".";
-                }
-                else if (c == '(')
-                {
-                    return "(";
-                }
-                else if (c == '[')
-                {
-                    return "[";
-                }
-                else if (c == '{')
-                {
-                    return "{";
-                }
-                if (Match(i, context.Text, out var key))
-                {
-                    return "";
-                }
-                else if (char.IsLetter(c))
-                {
-                    return GetIdentifier(ref i, context);
-                }
-                else
-                {
-                    return "";
-                }
+                context.NextToken(false);
+                c = context.Current;
             }
+
+            //// Skip whitespace
+            //if (char.IsWhiteSpace(c))
+            //{
+            //    continue;
+            //}
+
+            if (c == '.')
+            {
+                return ".";
+            }
+            else if (c == '(')
+            {
+                return "(";
+            }
+            else if (c == '[')
+            {
+                return "[";
+            }
+            else if (c == '{')
+            {
+                return "{";
+            }
+            if (Match(context, out var key))
+            {
+                return "";
+            }
+            else if (char.IsLetter(c))
+            {
+                return GetIdentifier(context);
+            }
+            else
+            {
+                return "";
+            }
+            //}
 
             return null;
         }
 
-        public static string GetIdentifier(ref int i, TokenContext context)
+        public static string GetIdentifier(TokenContext context)
         {
             // Handle operands
-            int j = i + 1;
+            int i = context.CurrentPosition;
+            context.NextToken(false);
+            // int j = i + 1;
 
 
             // TODO : have custom punctuation
-            while (j < context.Text.Length && !(char.IsWhiteSpace(context.Text[j]) || (char.IsPunctuation(context.Text[j]))))
+            while (context.CanRead && !(char.IsWhiteSpace(context.Current) || (char.IsPunctuation(context.Current))))
             {
-                j++;
+                context.NextToken(false);
             }
-            
 
-            var stringVal = context.Text.Substring(i, j - i);
-            i = j - 1;
+
+            var stringVal = context.Substring(i, context.CurrentPosition - i);
             return stringVal;
-            
         }
 
 
@@ -723,7 +761,7 @@ namespace Punica.Linq.Dynamic.RD
 
 
 
-        private static bool Match(int i, string expression, out string index)
+        private static bool Match(TokenContext context, out string index)
         {
             index = "";
 
@@ -731,18 +769,8 @@ namespace Punica.Linq.Dynamic.RD
             {
                 index = key;
                 var value = key;
-                int j;
-                for (j = 0; j < value.Length; j++)
-                {
-                    int k = i + j;
 
-                    if (k >= expression.Length || expression[k] != value[j])
-                    {
-                        break;
-                    }
-                }
-
-                if (j == value.Length)
+                if (context.Match(value))
                 {
                     return true;
                 }
@@ -751,86 +779,87 @@ namespace Punica.Linq.Dynamic.RD
             return false;
         }
 
-        private static int AddParameter(TokenContext context, int i, out IToken token)
+        private static void AddParameter(TokenContext context, out IToken token)
         {
             if (context.VariablesInstance == null)
             {
                 throw new ArgumentException("Parameters not supplied");
             }
 
-            int j = i + 1;
-            while (j < context.Text.Length && !(char.IsPunctuation(context.Text[j])))
+            context.NextToken(false);
+            int i = context.CurrentPosition;
+            while (context.CanRead && !(char.IsPunctuation(context.Current)))
             {
-                j++;
+                context.NextToken(false);
             }
 
-            var stringVal = context.Text.Substring(i+1, j - i - 1);
+            var stringVal = context.Substring(i, context.CurrentPosition - i);
 
 
 
             token = new ValueToken(Expression.PropertyOrField(context.VariablesInstance, stringVal));
-            i = j - 1;
+            // i = j - 1;
 
-            return i;
+            // return i;
         }
 
-        private static int AddNumber(string expression, int i, out IToken token)
+        private static void AddNumber(TokenContext context, out IToken token)
         {
-            int j = i + 1;
+            int i = context.CurrentPosition;
+            context.NextToken(false);
+            //int j = i + 1;
             var real = false;
 
-            while (j < expression.Length && !(char.IsWhiteSpace(expression[j])))
+            while (context.CanRead && !(char.IsWhiteSpace(context.Current)))
             {
-                if (!char.IsDigit(expression[j]) && expression[j] != '.')
+                if (!char.IsDigit(context.Current) && context.Current != '.')
                 {
-                    throw new ArgumentException($"Invalid number detected {expression.Substring(i, j)}");
+                    throw new ArgumentException($"Invalid number detected {context.Substring(i, context.CurrentPosition)}");
                 }
 
-                if (expression[j] == '.')
+                if (context.Current == '.')
                 {
                     if (real)
                     {
-                        throw new ArgumentException($"Invalid number detected {expression.Substring(i, j)}");
+                        throw new ArgumentException($"Invalid number detected {context.Substring(i, context.CurrentPosition)}");
                     }
 
                     real = true;
                 }
 
-                j++;
+                context.NextToken(false);
             }
 
-            var stringVal = expression.Substring(i, j - i);
+            var stringVal = context.Substring(i, context.CurrentPosition - i);
 
             token = real ? new ValueToken(Expression.Constant(double.Parse(stringVal))) : new ValueToken(Expression.Constant(int.Parse(stringVal)));
 
-            i = j - 1;
+            //i = j - 1;
 
-            return i;
+            //return i;
         }
 
-   
 
-        private static int AddString(string expression, int i, char c, out IToken token)
+
+        private static void AddString(TokenContext context, char c, out IToken token)
         {
             // Handle operands
-            int j = i + 1;
+            context.NextToken();
+            int startIndex = context.CurrentPosition;
 
-            while (j < expression.Length && expression[j] != c)
+            while (context.CanRead && context.Current != c)
             {
-                j++;
+                context.NextToken();
             }
 
-            if (expression[j] != c)
+            if (context.Current != c)
             {
                 throw new ArgumentException("Input contains invalid string literal.");
             }
 
-            var stringVal = expression.Substring(i + 1, j - i - 1);
+            var stringVal = context.Substring(startIndex, context.CurrentPosition - startIndex);
 
             token = new ValueToken(Expression.Constant(stringVal));
-
-            i = j; // last character since we starting with next
-            return i;
         }
     }
 }
