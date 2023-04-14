@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Punica.Linq.Dynamic;
+using Punica.Linq.Dynamic.Old;
 
 namespace Punica.Bp.EFCore.Query
 {

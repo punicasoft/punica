@@ -1,7 +1,4 @@
-﻿using System.Linq.Expressions;
-using Punica.Linq.Dynamic.RD.Tokens.abstractions;
-
-namespace Punica.Linq.Dynamic.RD
+﻿namespace Punica.Linq.Dynamic.RD
 {
     public interface ITokenList: IToken
     {

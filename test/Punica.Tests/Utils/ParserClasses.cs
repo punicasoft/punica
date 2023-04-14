@@ -197,6 +197,12 @@ namespace Punica.Tests.Utils
         public Person Owner { get; set; }
     }
 
+    class PetOwner
+    {
+        public string Name { get; set; }
+        public List<string> Pets { get; set; }
+    }
+
     public class JoinPara
     {
         public List<Pet> pets;

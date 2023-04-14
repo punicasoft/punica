@@ -1,8 +1,4 @@
-﻿
-using System.Diagnostics.Metrics;
-using System.Linq.Expressions;
-using System.Reflection.Metadata;
-using Punica.Extensions;
+﻿using System.Linq.Expressions;
 
 namespace Punica.Reflection
 {
@@ -723,7 +719,7 @@ namespace Punica.Reflection
             {
                 case 1:
                     var arg1 = expressions[0];
-                    return Expression.Call(EnumerableCachedMethodInfo.SequenceEqual(parameter.Type), member, arg1);
+                    return Expression.Call(EnumerableCachedMethodInfo.Union(parameter.Type), member, arg1);
                 default:
                     throw new ArgumentException("Invalid number of parameters");
             }

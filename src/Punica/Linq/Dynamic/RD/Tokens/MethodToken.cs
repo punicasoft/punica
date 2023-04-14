@@ -1,5 +1,4 @@
 ﻿using System.Linq.Expressions;
-using System.Reflection.Metadata;
 using Punica.Extensions;
 using Punica.Linq.Dynamic.RD.Tokens.abstractions;
 using Punica.Reflection;
@@ -31,6 +30,39 @@ namespace Punica.Linq.Dynamic.RD.Tokens
            // Parameter = new ParameterToken(memberExpression, "arg" + _depth);
         }
 
+        public ParameterToken[]? GetParameter(int depth)
+        {
+            var argNo = Tokens.Count +1;
+            var isFunction = MethodHandler.Instance.IsFunction(MethodName, argNo);
+
+            if (isFunction)
+            {
+                //TODO handle other argNo on different methods
+                
+                if (MethodName == "GroupBy")
+                {
+                    switch (argNo)
+                    {
+                        case 1: return new ParameterToken[] { new ParameterToken(MemberExpression, "arg" + depth) };
+                        case 2: return new ParameterToken[] { new ParameterToken(MemberExpression, "arg" + depth) };
+                    }
+                }
+
+                if (MethodName == "SelectMany")
+                {
+                    switch (argNo)
+                    {
+                        case 1: return new ParameterToken[] { new ParameterToken(MemberExpression, "arg" + depth) };
+                        //case 2: return new ParameterToken[] { new ParameterToken(MemberExpression, "arg" + depth), new ParameterToken(Tokens[0], "arg" + depth) };//TODO there is issue with processing of the second parameter
+                    }
+                }
+
+                return new ParameterToken[]{new ParameterToken(MemberExpression, "arg" + depth)};
+            }
+
+            return null;
+        }
+
         public void AddToken(IToken token)
         {
             Tokens.Add(token);
@@ -41,6 +73,8 @@ namespace Punica.Linq.Dynamic.RD.Tokens
             return Evaluate();
         }
 
+        //IEnumerable<TResult> SelectMany<TSource, TCollection, TResult>(this IEnumerable<TSource> source, Func<TSource, IEnumerable<TCollection>> collectionSelector, Func<TSource, TCollection, TResult> resultSelector)
+        //                     SelectMany<TSource, TCollection, TResult>(MemberExpression                , Tokens[0]                                                 , Tokens[1])
         public Expression Evaluate()
         {
             var memberExpression = MemberExpression.Evaluate();
@@ -60,7 +94,7 @@ namespace Punica.Linq.Dynamic.RD.Tokens
                     expressions.Add(expression);
                 }
 
-                var methodHandler = MethodHandlerFactory.Instance.GetHandler(memberExpression.Type);
+                var methodHandler = MethodHandler.Instance.GetHandler(memberExpression.Type);
 
                 return methodHandler.CallMethod(MethodName, memberExpression, parameter, expressions.ToArray());
 

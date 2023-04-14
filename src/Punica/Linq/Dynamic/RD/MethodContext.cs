@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+﻿using System.Linq.Expressions;
 using Punica.Linq.Dynamic.RD.Tokens;
 using Punica.Linq.Dynamic.RD.Tokens.abstractions;
 
@@ -15,6 +8,8 @@ namespace Punica.Linq.Dynamic.RD
     {
         private readonly Dictionary<int, List<ParameterToken>> _parameters = new Dictionary<int, List<ParameterToken>>();
         private int _depth = 0;
+
+        public int Depth => _depth;
 
         public MethodContext()
         {
