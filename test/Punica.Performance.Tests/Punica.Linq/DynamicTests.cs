@@ -1,7 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
 using Punica.Linq.Dynamic.Old;
 using Punica.Linq.Dynamic.RD;
-using Punica.Linq.Dynamic.RD.Tokens.abstractions;
 using System.Linq.Expressions;
 
 namespace Punica.Performance.Tests.Punica.Linq
@@ -25,7 +24,7 @@ namespace Punica.Performance.Tests.Punica.Linq
             string stringExp = "Select( new { FirstName , Children.Select(new {Name , Gender}).ToList() as 'Kids'} )";
 
             var rootToken = Tokenizer2.Evaluate(new TokenContext(stringExp, new MethodContext(Expression.Parameter(typeof(IQueryable<Person>), "arg"))));
-            var resultExpression = rootToken.Evaluate(null);
+            var resultExpression = rootToken.Evaluate();
         }
 
 
@@ -38,14 +37,49 @@ namespace Punica.Performance.Tests.Punica.Linq
             var resultExpression = evaluator.GetFilterExpression<bool>(expression1[0]);
         }
 
+
         [Benchmark]
         public void Evaluate_Normal_Expression_New()
         {
             string stringExp = $"(5 > 3 && 2 <= 4 || 1 != 1 ) && 2 + 4 > 3 && 's' in 'cro' + 's'";
 
             var rootToken = Tokenizer2.Evaluate(new TokenContext(stringExp));
-            var resultExpression = rootToken.Evaluate(null);
-        
+            var resultExpression = rootToken.Evaluate();
+
+        }
+
+
+        [Benchmark]
+        public void Evaluate_Average_Expression_New()
+        {
+            List<MyClass> c = new List<MyClass>()
+            {
+                new MyClass()
+                {
+                    x= 10,
+                },
+                new MyClass()
+                {
+                    x= 30,
+                },
+                new MyClass()
+                {
+                    x= 4,
+                }
+            };
+
+            string stringExp = $"Average(x)";
+
+            var rootToken = Tokenizer2.Evaluate(new TokenContext(stringExp, new MethodContext(Expression.Parameter(typeof(List<MyClass>), "arg"))));
+            var resultExpression = (LambdaExpression)rootToken.Evaluate();
+
+            resultExpression.Compile().DynamicInvoke(c);
+
+        }
+
+        class MyClass
+        {
+            public int x { get; set; }
         }
 
         //[Benchmark]

@@ -30,7 +30,7 @@ namespace Punica.Tests.Linq.Dynamic
         {
             var rootToken = Tokenizer2.Evaluate(new TokenContext(expression));
 
-            var resultExpression = rootToken.Evaluate(null);
+            var resultExpression = rootToken.Evaluate();
             return (Expression<Func<TResult>>)resultExpression;
         }
 
@@ -40,7 +40,7 @@ namespace Punica.Tests.Linq.Dynamic
             var methodContext = new MethodContext(Expression.Parameter(typeof(T1), "arg"));
             var rootToken = Tokenizer2.Evaluate(new TokenContext(expression, methodContext));
 
-            var resultExpression = rootToken.Evaluate(null);
+            var resultExpression = rootToken.Evaluate();
             return (Expression<Func<T1, TResult>>)resultExpression;
         }
 
@@ -50,7 +50,7 @@ namespace Punica.Tests.Linq.Dynamic
             var methodContext = new MethodContext(Expression.Parameter(typeof(T1), "arg"));
             var rootToken = Tokenizer2.Evaluate(new TokenContext(expression, methodContext));
 
-            var resultExpression = rootToken.Evaluate(null);
+            var resultExpression = rootToken.Evaluate();
             return (LambdaExpression)resultExpression;
         }
 
@@ -595,33 +595,33 @@ namespace Punica.Tests.Linq.Dynamic
 
         //}
 
-        [Fact]
-        public void Evaluate_SelectMany2_ShouldWork()
-        {
-            PetOwner[] petOwners =
-            { new PetOwner { Name="Higa",
-                    Pets = new List<string>{ "Scruffy", "Sam" } },
-                new PetOwner { Name="Ashkenazi",
-                    Pets = new List<string>{ "Walker", "Sugar" } },
-                new PetOwner { Name="Price",
-                    Pets = new List<string>{ "Scratches", "Diesel" } },
-                new PetOwner { Name="Hines",
-                    Pets = new List<string>{ "Dusty" } } };
+        //[Fact]
+        //public void Evaluate_SelectMany2_ShouldWork()
+        //{
+        //    PetOwner[] petOwners =
+        //    { new PetOwner { Name="Higa",
+        //            Pets = new List<string>{ "Scruffy", "Sam" } },
+        //        new PetOwner { Name="Ashkenazi",
+        //            Pets = new List<string>{ "Walker", "Sugar" } },
+        //        new PetOwner { Name="Price",
+        //            Pets = new List<string>{ "Scratches", "Diesel" } },
+        //        new PetOwner { Name="Hines",
+        //            Pets = new List<string>{ "Dusty" } } };
 
-            // Project the pet owner's name and the pet's name.
-            var query =
-                petOwners
-                    .SelectMany(petOwner => petOwner.Pets,
-                        (petOwner, petName) => new { petOwner, petName })
-                    .Where(ownerAndPet => ownerAndPet.petName.StartsWith("S"))
-                    .Select(ownerAndPet =>
-                        new
-                        {
-                            Owner = ownerAndPet.petOwner.Name,
-                            Pet = ownerAndPet.petName
-                        }
-                    );
-        }
+        //    // Project the pet owner's name and the pet's name.
+        //    var query =
+        //        petOwners
+        //            .SelectMany(petOwner => petOwner.Pets,
+        //                (petOwner, petName) => new { petOwner, petName })
+        //            .Where(ownerAndPet => ownerAndPet.petName.StartsWith("S"))
+        //            .Select(ownerAndPet =>
+        //                new
+        //                {
+        //                    Owner = ownerAndPet.petOwner.Name,
+        //                    Pet = ownerAndPet.petName
+        //                }
+        //            );
+        //}
 
     }
 }
