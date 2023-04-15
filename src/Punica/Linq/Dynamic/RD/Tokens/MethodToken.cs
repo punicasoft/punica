@@ -8,16 +8,17 @@ namespace Punica.Linq.Dynamic.RD.Tokens
     /// <summary>
     /// So method token you might need lambada expressions for each parameter if the parameter is function
     /// </summary>
-    public class MethodToken : Operation, ITokenList, IExpression
+    public class MethodToken : ITokenList, IExpression
     {
         //private readonly int _depth;
         public string MethodName { get; }
         public IExpression MemberExpression { get; } // TODO support chaining of methods
         private IExpression? Parameter { get; }
         public List<IToken> Tokens { get; }
-        public override bool IsLeftAssociative => false;
-        public override short Precedence => 14;
-        public override ExpressionType ExpressionType => ExpressionType.Call;
+        public bool IsLeftAssociative => false;
+        public short Precedence => 14;
+        public TokenType TokenType => TokenType.Operator;
+        public ExpressionType ExpressionType => ExpressionType.Call;
         
 
         public MethodToken(string methodName, IExpression memberExpression, IExpression parameter)
@@ -68,11 +69,6 @@ namespace Punica.Linq.Dynamic.RD.Tokens
             Tokens.Add(token);
         }
 
-        public override Expression Evaluate(Stack<Expression> stack)
-        {
-            return Evaluate();
-        }
-
         //IEnumerable<TResult> SelectMany<TSource, TCollection, TResult>(this IEnumerable<TSource> source, Func<TSource, IEnumerable<TCollection>> collectionSelector, Func<TSource, TCollection, TResult> resultSelector)
         //                     SelectMany<TSource, TCollection, TResult>(MemberExpression                , Tokens[0]                                                 , Tokens[1])
         public Expression Evaluate()
@@ -89,7 +85,7 @@ namespace Punica.Linq.Dynamic.RD.Tokens
                 {
                     var list = token as ITokenList;
 
-                    var expression = Process(list.Tokens);
+                    var expression = ExpressionEvaluator.Evaluate(list.Tokens);
 
                     expressions.Add(expression);
                 }
