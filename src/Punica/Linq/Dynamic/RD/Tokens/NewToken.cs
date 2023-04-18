@@ -5,11 +5,11 @@ using Punica.Linq.Expressions;
 
 namespace Punica.Linq.Dynamic.RD.Tokens
 {
-    public class NewToken : ITokenList, IExpression
+    public class NewToken : IExpressionToken
     {
        // public Expression MemberExpression { get; }
        // public IExpression? Parameter { get; }
-        public List<IToken> Tokens { get; }
+        public List<Argument> Tokens { get; }
         public bool IsLeftAssociative => true;
         public short Precedence => 14;
         public TokenType TokenType => TokenType.Operator;
@@ -17,11 +17,11 @@ namespace Punica.Linq.Dynamic.RD.Tokens
 
         public NewToken(IExpression? parameter)
         {
-            Tokens = new List<IToken>();
+            Tokens = new List<Argument>();
            // Parameter = parameter;
         }
         
-        public void AddToken(IToken token)
+        public void AddToken(Argument token)
         {
             Tokens.Add(token);
         }
@@ -55,9 +55,7 @@ namespace Punica.Linq.Dynamic.RD.Tokens
             List<Expression> expressions = new List<Expression>();
             foreach (var token in Tokens)
             {
-                var list = token as ITokenList;
-
-                var expression = ExpressionEvaluator.Evaluate(list.Tokens);
+                var expression = ExpressionEvaluator.Evaluate(token.Tokens);
 
                 expressions.Add(expression);
             }

@@ -3,7 +3,7 @@ using Punica.Linq.Dynamic.RD.Tokens.abstractions;
 
 namespace Punica.Linq.Dynamic.RD
 {
-    public class ValueToken : IToken, IExpression
+    public class ValueToken : IExpressionToken
     {
         public bool IsLeftAssociative => false;
         private Expression? _value;

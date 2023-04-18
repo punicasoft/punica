@@ -280,7 +280,7 @@ namespace Punica.Linq.Dynamic.RD
                     var methodToken = new MethodToken(identifier, exp, context.MethodContext.GetParameter());
                     identifier = string.Empty;
 
-                    var parameter = new TokenList();
+                    var parameter = new Argument();
                     context.NextToken();
                     int depth = 1;
 
@@ -300,7 +300,7 @@ namespace Punica.Linq.Dynamic.RD
                                 break;
                             case ',':
                                 methodToken.AddToken(parameter);
-                                parameter = new TokenList();
+                                parameter = new Argument();
                                 context.MethodContext.MoveToNextArgument();
                                 context.NextToken();
                                 break;
@@ -340,7 +340,7 @@ namespace Punica.Linq.Dynamic.RD
                     var newToken = new NewToken(context.MethodContext.GetParameter());
                     identifier = string.Empty;
 
-                    var parameter = new TokenList();
+                    var parameter = new Argument();
 
                     context.NextToken();
                     int depth = 1;
@@ -362,7 +362,7 @@ namespace Punica.Linq.Dynamic.RD
                             case ',':
                                 newToken.AddToken(parameter);
                                 context.NextToken();
-                                parameter = new TokenList();
+                                parameter = new Argument();
                                 break;
                             default:
                                 {

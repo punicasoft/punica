@@ -3,7 +3,7 @@ using Punica.Linq.Dynamic.RD.Tokens.abstractions;
 
 namespace Punica.Linq.Dynamic.RD.Tokens
 {
-    public class RootToken : ITokenList, IExpression
+    public class RootToken : IExpression
     {
         //public IExpression? Parameter { get; set; }
         private readonly ParameterToken[] _parameters;

@@ -1,9 +1,10 @@
 ﻿
 using System.Linq.Expressions;
+using Punica.Linq.Dynamic.RD.Tokens.abstractions;
 
 namespace Punica.Linq.Dynamic.RD.Tokens
 {
-    public class GeneralOperationToken :IToken
+    public class GeneralOperationToken : IToken
     {
         public bool IsLeftAssociative => true;
         public short Precedence => -2;

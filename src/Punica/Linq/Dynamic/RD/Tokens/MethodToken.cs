@@ -8,13 +8,13 @@ namespace Punica.Linq.Dynamic.RD.Tokens
     /// <summary>
     /// So method token you might need lambada expressions for each parameter if the parameter is function
     /// </summary>
-    public class MethodToken : ITokenList, IExpression
+    public class MethodToken : IExpressionToken
     {
         //private readonly int _depth;
         public string MethodName { get; }
         public IExpression MemberExpression { get; } // TODO support chaining of methods
         private IExpression? Parameter { get; }
-        public List<IToken> Tokens { get; }
+        public List<Argument> Tokens { get; }
         public bool IsLeftAssociative => false;
         public short Precedence => 14;
         public TokenType TokenType => TokenType.Operator;
@@ -26,45 +26,45 @@ namespace Punica.Linq.Dynamic.RD.Tokens
            // _depth = depth;
             MethodName = methodName;
             MemberExpression = memberExpression;
-            Tokens = new List<IToken>();
+            Tokens = new List<Argument>();
             Parameter = parameter;
            // Parameter = new ParameterToken(memberExpression, "arg" + _depth);
         }
 
         public ParameterToken[]? GetParameter(int depth)
         {
-            var argNo = Tokens.Count +1;
-            var isFunction = MethodHandler.Instance.IsFunction(MethodName, argNo);
+            //var argNo = Tokens.Count +1;
+            //var isFunction = MethodHandler.Instance.IsFunction(MethodName, argNo);
 
-            if (isFunction)
-            {
-                //TODO handle other argNo on different methods
+            //if (isFunction)
+            //{
+            //    //TODO handle other argNo on different methods
                 
-                if (MethodName == "GroupBy")
-                {
-                    switch (argNo)
-                    {
-                        case 1: return new ParameterToken[] { new ParameterToken(MemberExpression, "arg" + depth) };
-                        case 2: return new ParameterToken[] { new ParameterToken(MemberExpression, "arg" + depth) };
-                    }
-                }
+            //    if (MethodName == "GroupBy")
+            //    {
+            //        switch (argNo)
+            //        {
+            //            case 1: return new ParameterToken[] { new ParameterToken(MemberExpression, "arg" + depth) };
+            //            case 2: return new ParameterToken[] { new ParameterToken(MemberExpression, "arg" + depth) };
+            //        }
+            //    }
 
-                if (MethodName == "SelectMany")
-                {
-                    switch (argNo)
-                    {
-                        case 1: return new ParameterToken[] { new ParameterToken(MemberExpression, "arg" + depth) };
-                        //case 2: return new ParameterToken[] { new ParameterToken(MemberExpression, "arg" + depth), new ParameterToken(Tokens[0], "arg" + depth) };//TODO there is issue with processing of the second parameter
-                    }
-                }
+            //    if (MethodName == "SelectMany")
+            //    {
+            //        switch (argNo)
+            //        {
+            //            case 1: return new ParameterToken[] { new ParameterToken(MemberExpression, "arg" + depth) };
+            //            //case 2: return new ParameterToken[] { new ParameterToken(MemberExpression, "arg" + depth), new ParameterToken(Tokens[0], "arg" + depth) };//TODO there is issue with processing of the second parameter
+            //        }
+            //    }
 
-                return new ParameterToken[]{new ParameterToken(MemberExpression, "arg" + depth)};
-            }
+            //    return new ParameterToken[]{new ParameterToken(MemberExpression, "arg" + depth)};
+            //}
 
             return null;
         }
 
-        public void AddToken(IToken token)
+        public void AddToken(Argument token)
         {
             Tokens.Add(token);
         }
@@ -83,9 +83,9 @@ namespace Punica.Linq.Dynamic.RD.Tokens
                 List<Expression> expressions = new List<Expression>();
                 foreach (var token in Tokens)
                 {
-                    var list = token as ITokenList;
+                    //var list = token as ITokenList;
 
-                    var expression = ExpressionEvaluator.Evaluate(list.Tokens);
+                    var expression = ExpressionEvaluator.Evaluate(token.Tokens);
 
                     expressions.Add(expression);
                 }

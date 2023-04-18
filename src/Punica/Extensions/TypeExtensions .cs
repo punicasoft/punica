@@ -157,7 +157,24 @@ namespace Punica.Extensions
             return null;
         }
 
-       
+        public static bool IsFuncType(this Type type)
+        {
+            if (!type.IsGenericType)
+                return false;
+
+            var genericTypeDef = type.GetGenericTypeDefinition();
+
+            if (genericTypeDef.Name.StartsWith("Func`") && typeof(MulticastDelegate).IsAssignableFrom(type.BaseType))
+            {
+                // Check if the type arguments for the Func type end with TOut
+                var genericArgs = type.GetGenericArguments();
+                return genericArgs.Last().Name == "TOut";
+            }
+
+            return false;
+        }
+
+
 
     }
 }
