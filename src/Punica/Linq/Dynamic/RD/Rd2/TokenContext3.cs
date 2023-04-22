@@ -2,6 +2,7 @@
 using Punica.Linq.Dynamic.RD.Tokens.abstractions;
 using System.Globalization;
 using System.Linq.Expressions;
+using Punica.Linq.Dynamic.RD.Tokens;
 
 namespace Punica.Linq.Dynamic.RD.Rd2
 {
@@ -47,16 +48,21 @@ namespace Punica.Linq.Dynamic.RD.Rd2
         public Expression? VariablesInstance { get; }
 
         //TODO remove this. currently used for backward compatibility
-        public MethodContext MethodContext { get; }
+        public MethodContext3 MethodContext { get; }
 
 
-        public TokenContext3(string txt, MethodContext? methodContext = null, Expression? variablesInstance = null)
+        public TokenContext3(string txt, Expression? variablesInstance = null)
         {
             _txt = txt;
             VariablesInstance = variablesInstance;
             SetPosition(0);
-            MethodContext = methodContext ?? new MethodContext();
+            MethodContext = new MethodContext3();
             NextToken();
+        }
+
+        public void AddStartParameter(Type type)
+        {
+            MethodContext.AddParameter(new ParameterToken(Expression.Parameter(type, "_arg")));
         }
 
         public void AddIdentifier(string name, Expression expression)

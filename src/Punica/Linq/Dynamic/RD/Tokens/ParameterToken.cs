@@ -4,11 +4,11 @@ using Punica.Linq.Dynamic.RD.Tokens.abstractions;
 
 namespace Punica.Linq.Dynamic.RD.Tokens
 {
-    public class ParameterToken : IExpression
+    public class ParameterToken : IExpressionToken
     {
         private Expression? _value;
         private bool _evaluated;
-        private readonly IExpression? _expression;
+        private IExpression? _expression;
         private readonly string? _name;
 
         /// <summary>
@@ -24,11 +24,22 @@ namespace Punica.Linq.Dynamic.RD.Tokens
 
         }
 
+        public ParameterToken(string name)
+        {
+            _name =  name;
+            _evaluated = false;
+        }
+
         public ParameterToken(IExpression expression, string name)
         {
             _expression = expression;
             _name = name;
             _evaluated = false;
+        }
+
+        internal void SetExpression(IExpression expression)
+        {
+            _expression = expression; //TODO handle invalid scenarios
         }
 
         public Expression Evaluate()
@@ -50,5 +61,11 @@ namespace Punica.Linq.Dynamic.RD.Tokens
 
             return _value;
         }
+
+        //TODO remove?
+        public bool IsLeftAssociative => true;
+        public short Precedence => 0;
+        public TokenType TokenType => TokenType.Value;
+        public ExpressionType ExpressionType => ExpressionType.Parameter;
     }
 }

@@ -69,7 +69,7 @@ namespace Punica.Linq.Dynamic.RD.Rd2
                     }
 
                     // Handle method call
-                    var methodCallExpression = ParseMethodCallExpression(context, context.MethodContext.GetParameter(), token);
+                    var methodCallExpression = ParseMethodCallExpression(context, context.MethodContext.AddOrGetParameter(), token);
                     var memberExpression = ParseMemberAccessExpression(context, methodCallExpression); //handle chaining
 
                     return memberExpression;
@@ -142,11 +142,11 @@ namespace Punica.Linq.Dynamic.RD.Rd2
 
         //var expressionString = "Person.Select(p => new { p.Name, Age = DateTime.Now.Year - p.BirthYear }).Where(x => x.Age > 30)";
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static MethodToken ParseMethodCallExpression(TokenContext3 context, IExpression targetExpression, Token methodToken)
+        private static MethodToken3 ParseMethodCallExpression(TokenContext3 context, IExpression targetExpression, Token methodToken)
         {
             context.MethodContext.NextDepth();
-            context.MethodContext.AddParameter(targetExpression);
-            var method = new MethodToken(methodToken.Text, targetExpression, context.MethodContext.GetParameter());
+            //context.MethodContext.AddParameter(targetExpression);
+            var method = new MethodToken3(methodToken.Text, targetExpression);
 
             var argument = new Argument();
             context.NextToken(); // consume parenthesis
@@ -167,6 +167,8 @@ namespace Punica.Linq.Dynamic.RD.Rd2
                         {
                             if (depth == 0)
                             {
+                                var lambdas = context.MethodContext.MoveToNextArgument();
+                                argument.AddParameters(lambdas);
                                 method.AddToken(argument);
                             }
                             else
@@ -176,23 +178,25 @@ namespace Punica.Linq.Dynamic.RD.Rd2
                         }
                         context.NextToken();
                         break;
-                    // (person, petCollection) => new { OwnerName = person.FirstName, Pets = petCollection.Select(pet => pet.Name) }
+                   
                     case TokenId.Comma:
-
+                        // (person, petCollection) => new { OwnerName = person.FirstName, Pets = petCollection.Select(pet => pet.Name) }
                         if (argument.IsFirstOpenParenthesis())
                         {
                             argument.AddToken(context.CurrentToken.ParsedToken!);
                         }
                         else
-                        {
+                        {   // Add(FirstName, LastName) }
                             method.AddToken(argument);
                             argument = new Argument();
-                            context.MethodContext.MoveToNextArgument();
+                            var lambdas = context.MethodContext.MoveToNextArgument();
+                            argument.AddParameters(lambdas);
                         }
                         context.NextToken();
                         break;
                     case TokenId.Lambda:
-                        argument.ProcessLambda();
+                        var paraNames = argument.ProcessLambda();
+                        context.MethodContext.AddParameters(paraNames);
                         context.NextToken();// consume lambda
                         break;
                     default:
@@ -214,13 +218,15 @@ namespace Punica.Linq.Dynamic.RD.Rd2
                 throw new ArgumentException("Input contains mismatched parentheses.");
             }
 
+            context.MethodContext.PreviousDepth();
+
             return method;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static NewToken ParseNewCallExpression(TokenContext3 context, Token methodToken)
         {
-            var newToken = new NewToken(context.MethodContext.GetParameter());
+            var newToken = new NewToken();
 
             var parameter = new Argument();
             context.NextToken(); // consume parenthesis
@@ -316,7 +322,17 @@ namespace Punica.Linq.Dynamic.RD.Rd2
             }
             else if (token.Id == TokenId.Identifier)
             {
-                return new PropertyToken(context.MethodContext.GetParameter(), token.Text);
+                // FirstName
+                // person => person.FirstName
+                var parameter = context.MethodContext.GetParameter(token.Text);
+                if (parameter != null)
+                {
+                    return parameter;
+                }
+                else
+                {
+                    return new PropertyToken(context.MethodContext.AddOrGetParameter(), token.Text);
+                }
             }
             else
             {

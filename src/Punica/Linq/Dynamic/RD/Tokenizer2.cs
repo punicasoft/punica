@@ -337,7 +337,7 @@ namespace Punica.Linq.Dynamic.RD
                         throw new NotSupportedException($"Not able to handle {{ with this identifier {identifier}");
                     }
 
-                    var newToken = new NewToken(context.MethodContext.GetParameter());
+                    var newToken = new NewToken();
                     identifier = string.Empty;
 
                     var parameter = new Argument();

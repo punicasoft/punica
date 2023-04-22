@@ -15,7 +15,7 @@ namespace Punica.Linq.Dynamic.RD.Tokens
         public TokenType TokenType => TokenType.Operator;
         public ExpressionType ExpressionType => ExpressionType.New;
 
-        public NewToken(IExpression? parameter)
+        public NewToken()
         {
             Tokens = new List<Argument>();
            // Parameter = parameter;

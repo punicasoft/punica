@@ -6,6 +6,8 @@ namespace Punica.Linq.Dynamic.RD.Tokens
     public class Argument //: ITokenList
     {
         private readonly List<string> _lambdas = new List<string>();
+        private ParameterToken[] _parameter;
+        public IReadOnlyList<string> Lambdas => _lambdas;
         public bool IsLeftAssociative => true;
         public IExpression? Parameter { get; } = null;
         public List<IToken> Tokens { get; }
@@ -24,7 +26,12 @@ namespace Punica.Linq.Dynamic.RD.Tokens
             Tokens.Add(token);
         }
 
-        public void ProcessLambda()
+        public void AddParameters(ParameterToken[] paras)
+        {
+            _parameter = paras;
+        }
+
+        public IReadOnlyList<string> ProcessLambda()
         {
             bool openParenthesis = false;
             bool closeParenthesis = false;
@@ -75,6 +82,8 @@ namespace Punica.Linq.Dynamic.RD.Tokens
             {
                 throw new ArgumentException("Invalid Expression");
             }
+
+            return _lambdas;
         }
 
         public bool IsFirstOpenParenthesis()
@@ -88,5 +97,20 @@ namespace Punica.Linq.Dynamic.RD.Tokens
         }
 
 
+        public ParameterExpression? SetParameterExpressionBody(IExpression memberExpression)
+        {
+            if (_parameter.Length > 1)
+            {
+                throw new Exception("More than 1 arg is not handled");
+            }
+
+            if (_parameter.Length == 1)
+            {
+                _parameter[0].SetExpression(memberExpression);
+                return (ParameterExpression)_parameter[0].Evaluate();
+            }
+
+            return null;
+        }
     }
 }

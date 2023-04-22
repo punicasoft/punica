@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using Punica.Extensions;
 
 namespace Punica.Reflection
 {
@@ -332,7 +333,7 @@ namespace Punica.Reflection
 
         public MethodCallExpression GroupJoin(Expression member, ParameterExpression parameter, Expression[] expressions)
         {
-            //if (expressions.Length !=4)
+            //if (expressions.Length != 4)
             //{
             //    throw new ArgumentException("Invalid number of parameters");
             //}
@@ -710,7 +711,8 @@ namespace Punica.Reflection
                 throw new ArgumentException("Invalid number of parameters");
             }
 
-            return Expression.Call(EnumerableCachedMethodInfo.ToList(parameter.Type), member);
+            var type = member.Type.GetElementOrGenericArgType();
+            return Expression.Call(EnumerableCachedMethodInfo.ToList(type), member);
         }
 
         public MethodCallExpression Union(Expression member, ParameterExpression parameter, Expression[] expressions)
