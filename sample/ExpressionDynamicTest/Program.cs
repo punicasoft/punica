@@ -9,10 +9,12 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Xml.Linq;
+using ExpressionDynamicTest;
 using ExpressionDynamicTest.Parsing;
 using ExpressionDynamicTest.Parsing.Models;
 using Punica.Linq.Dynamic.Old;
 using Punica.Linq.Dynamic.RD;
+using Punica.Reflection;
 
 //string expression = "!(5 > 3 && 2 <= 4 || 1 != 1 ) && 5 > 3";
 //string expression = "(5 > 3 && 2 <= 4 || 1 != 1 ) && 5 > 3";
@@ -30,7 +32,7 @@ var person = new Person()
 {
     FirstName = "P1",
     LastName = "P2",
-    Childrens = new List<Child>()
+    Children = new List<Child>()
     {
         new Child()
         {
@@ -50,70 +52,110 @@ var person = new Person()
     }
 };
 
-//MethodInfo containsMethod = typeof(string).GetMethod("Contains", new Type[] { typeof(string) });
-//var expression = Expression.PropertyOrField(Expression.Constant(parameters), nameof(Parameters.Description));
-//var val = Expression.Constant("hey");
-//var exp1 = Expression.Call(expression, containsMethod, val);
+Person magnus = new Person { FirstName = "Magnus" };
+Person terry = new Person { FirstName = "Terry" };
+Person charlotte = new Person { FirstName = "Charlotte" };
+
+Pet barley = new Pet { Name = "Barley", Owner = terry };
+Pet boots = new Pet { Name = "Boots", Owner = terry };
+Pet whiskers = new Pet { Name = "Whiskers", Owner = charlotte };
+Pet daisy = new Pet { Name = "Daisy", Owner = magnus };
+
+List<Person> people = new List<Person> { magnus, terry, charlotte };
+List<Pet> pets = new List<Pet> { barley, boots, whiskers, daisy };
+
+// Create a list where each element is an anonymous
+// type that contains a person's name and
+// a collection of names of the pets they own.
+var expected = people.GroupJoin(pets,
+    p => p,
+    p => p.Owner,
+    (p, petCollection) =>
+        new Groued
+        {
+            Owner = person.FirstName,
+            Pets = petCollection.Select(pet => pet.Name).ToList(),
+        });
 
 
 
 
-//var operands = Operands.Create(new Token("hey", TokenType.String), new Token("Description", TokenType.Parameter), null, Expression.Constant(parameters));
+
+MethodInfo methodInfo = EnumerableCachedMethodInfo.GroupJoin(typeof(List<Person>),typeof(List<Pet>), typeof(Person),typeof(Groued)).GetGenericMethodDefinition();
 
 
+List<Type> providedTypes = new List<Type> { typeof(List<Person>), typeof(List<Pet>) };
 
-//var exp2 = Expression.Call(operands.Right, containsMethod, operands.Left);
+MethodFinder.Instance.Print();
 
+//ArgData.GetArgData(methodInfo, providedTypes);
 
-MyMethod(parameters, person);
+//var resolver = MethodFinder.Instance.GetArgData(methodInfo);
 
-var error = "new{Id,FirstName as 'BuyerName', Account.Name, Account . Name , Childrens.Select(new{Name,Gender}})";
+//Expression<Func<Person, Person>> exp1 = p => p;
+//Expression<Func<Pet, Person>> exp2 = p => p.Owner;
+//Expression<Func<Person, IEnumerable<Pet>, Groued>> exp3 = (p, pt) => new Groued { Owner = p.FirstName, Pets = pt.Select(pet => pet.Name).ToList(), };
 
-var sql = "new{Id,FirstName as 'BuyerName', Account.Name, Account . Name , Childrens.Select(new{Name,Gender})}";
+//List<Expression> arg = new List<Expression> { Expression.Constant(people), Expression.Constant(pets), exp1, exp2, exp3 };
 
-var tokens = Tokenizer2.Tokenize(new TokenContext(sql, new MethodContext(Expression.Parameter(typeof(Person), "arg"))));
+//for (int i = 0; i < resolver.FuncCount; i++)
+//{
+//    var types = resolver.LambdasTypes(arg.ToArray(), i);
+
+//    foreach (var type in types)
+//    {
+//        Console.WriteLine(type.Name);
+//    }
+//    Console.WriteLine();
+//}
 
 
 Console.ReadLine();
 
 
-static void MyMethod(Parameters paras, Person person1)
+
+public class Groued
 {
-    //string expression = "'hey' in @Description";
-    //var val = paras.Description == "hey";
+    public string Owner { get; set; }
+    public List<string> Pets { get; set; }
+} 
 
-    //string expression = "'hello' == 'hel' + 'lo'";
-    //var val = paras.Description == "hey";
+public class Person
+{
+    public Guid Id { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public string Description { get; set; }
+    public DateTime Dob { get; set; }
+    public int NoOfChildren { get; set; }
+    public bool IsMarried { get; set; }
+    public bool IsMale { get; set; }
+    public Account Account { get; set; }
 
-    //string expression = "8 in @Ids";
-    //var val = paras.Status.Contains("Old");
-
-    //string expression = "Childrens.any('DeMale' in Gender)";
-    //Expression<Func<Person, bool>> val = p => p.Childrens.Any(c => c.Gender.Contains("DeMale"));
-
-    // string expression = "new { Name , Id , Buyer.Name as BuyerName , Buyer.Email , Buyer.(new {Name , Email}) , Items.Select(new {Id,ProductName as Name,UnitPrice})}";
-    //string expression = "new { FirstName , Account = new {Name + 's', Balance} , IsMale }";
-    // string expression = "FirstName , Account = new {Name + 's', Balance} , IsMale ";
-   
-    //string expression = "Account = new {Account.Name + 's'  as 'Id', Account.Balance}"; //TODO add = support, also support levels like outer one could be in or assign value can be in
-    string expression = "FirstName, Childrens.Select(new {Name , Gender}).ToList() as Kids";
-    //string expression = "Account.Bind(new {Name + 's', Balance})";
-    //string expression = "new {Name + 's' as 'Id', Balance}";
-    // string expression = "new { FirstName , LastName , Account.Name , Account.Balance}";
-    // string expression = " FirstName , Account.Bind(Name + 's', Balance) , IsMale ";
-    Expression<Func<Person, bool>> val = p => p.Childrens.Any(c => c.Gender.Contains("DeMale"));
-    
-
-    // Evaluate the expression and print the result
-
-    Evaluator evaluator = new Evaluator(typeof(Person), Expression.Constant(paras));
-    var expression1 = TextParser.Evaluate(expression, evaluator)[0];
-    Console.WriteLine(expression1); // False
-
-    var func = evaluator.GetFilterExpression<Person, object>(expression1).Compile();
-    Console.WriteLine(func(person1) + "  " + val.Compile()(person1));
-
+    public List<Child> Children { get; set; }
 }
+
+
+
+public class Account
+{
+    public string Name { get; set; }
+    public decimal Balance { get; set; }
+}
+
+public class Child
+{
+    public string Name { get; set; }
+
+    public string Gender { get; set; }
+}
+
+public class Pet
+{
+    public string Name { get; set; }
+    public Person Owner { get; set; }
+}
+
 
 public class Parameters
 {

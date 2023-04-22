@@ -3,6 +3,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using Punica.Linq.Dynamic.Old;
 using Punica.Linq.Dynamic.RD;
+using Punica.Linq.Dynamic.RD.Rd2;
 using Punica.Linq.Dynamic.RD.Tokens.abstractions;
 using Punica.Tests.Utils;
 
@@ -28,7 +29,7 @@ namespace Punica.Tests.Linq.Dynamic
 
         private Expression<Func<TResult>> GetExpression<TResult>(string expression)
         {
-            var rootToken = Tokenizer2.Evaluate(new TokenContext(expression));
+            var rootToken = Tokenizer3.Evaluate(new TokenContext3(expression));
 
             var resultExpression = rootToken.Evaluate();
             return (Expression<Func<TResult>>)resultExpression;
@@ -37,8 +38,13 @@ namespace Punica.Tests.Linq.Dynamic
         private Expression<Func<T1, TResult>> GetExpression<T1, TResult>(string expression)
         {
             //var rootToken = Tokenizer2.Evaluate(new TokenContext(expression, Expression.Parameter(typeof(T1), "arg")));
-            var methodContext = new MethodContext(Expression.Parameter(typeof(T1), "arg"));
-            var rootToken = Tokenizer2.Evaluate(new TokenContext(expression, methodContext));
+
+            //var methodContext = new MethodContext3(Expression.Parameter(typeof(T1), "arg"));
+            //var rootToken = Tokenizer3.Evaluate(new TokenContext3(expression, methodContext));
+
+            var context = new TokenContext3(expression);
+            context.AddStartParameter(typeof(T1));
+            var rootToken = Tokenizer3.Evaluate(context);
 
             var resultExpression = rootToken.Evaluate();
             return (Expression<Func<T1, TResult>>)resultExpression;
@@ -47,8 +53,13 @@ namespace Punica.Tests.Linq.Dynamic
         private LambdaExpression GetGeneralExpression<T1, TResult>(string expression)
         {
             // var rootToken = Tokenizer2.Evaluate(new TokenContext(expression, Expression.Parameter(typeof(T1), "arg")));
-            var methodContext = new MethodContext(Expression.Parameter(typeof(T1), "arg"));
-            var rootToken = Tokenizer2.Evaluate(new TokenContext(expression, methodContext));
+
+            //var methodContext = new MethodContext3(Expression.Parameter(typeof(T1), "arg"));
+            //var rootToken = Tokenizer3.Evaluate(new TokenContext3(expression, methodContext));
+
+            var context = new TokenContext3(expression);
+            context.AddStartParameter(typeof(T1));
+            var rootToken = Tokenizer3.Evaluate(context);
 
             var resultExpression = rootToken.Evaluate();
             return (LambdaExpression)resultExpression;
@@ -178,7 +189,7 @@ namespace Punica.Tests.Linq.Dynamic
 
         [Theory]
         [InlineData(7, 8)]
-        //[InlineData(5, 5)]
+        [InlineData(5, 5)]
         public void Evaluate_WhenExpressionIsEqual_ShouldWork(int x, int y)
         {
 
@@ -450,6 +461,15 @@ namespace Punica.Tests.Linq.Dynamic
         }
 
         [Fact]
+        public void SelectInsideSelect_Evaluator()
+        {
+            string stringExp = "this.Select( new { FirstName , Children.Select(new {Name , Gender}).ToList() as Kids} )";
+            Evaluator evaluator = new Evaluator(typeof(IQueryable<Person>), null);
+            var expression1 = TextParser.Evaluate(stringExp, evaluator);
+            var resultExpression = evaluator.GetFilterExpression<IQueryable<Person>, object>(expression1[0]);
+        }
+
+        [Fact]
         public void Evaluate_WhenExpressionIsQueryable_ShouldWork()
         {
             string stringExp = "Select( new { FirstName , Children.Select(new {Name , Gender}).ToList() as 'Kids'} )";
@@ -518,9 +538,34 @@ namespace Punica.Tests.Linq.Dynamic
                 new object[] { nameof(Numbers.LongNumbersN), Data.Num.Average(n=> n.LongNumbersN) },
             };
 
-        ///// TODO add date time add, and other operations, string operations, guid 
+        ///// TODO add date time add, and other operations, string operations, guid
 
-        //  [Fact]
+
+        //[Fact]
+        //public void Evaluate_Select2_Should_Work()
+        //{
+        //    List<int> numbers = new List<int> { 1, 2, 3, 4, 5 };
+
+        //    // Using the first Select overload: Func<TSource, TResult>
+        //    // Doubles each number in the list
+        //    IEnumerable<int> doubledNumbers = numbers.Select(x => x * 2);
+        //    Console.WriteLine("Doubled numbers:");
+        //    foreach (int number in doubledNumbers)
+        //    {
+        //        Console.WriteLine(number);
+        //    }
+
+        //    // Using the second Select overload: Func<TSource, int, TResult>
+        //    // Creates a tuple with the number and its index in the list
+        //    IEnumerable<(int Number, int Index)> numbersWithIndex = numbers.Select((x, index) => (Number: x, Index: index));
+        //    Console.WriteLine("\nNumbers with index:");
+        //    foreach (var numberWithIndex in numbersWithIndex)
+        //    {
+        //        Console.WriteLine($"Number: {numberWithIndex.Number}, Index: {numberWithIndex.Index}");
+        //    }
+        //}
+
+        //[Fact]
         //public void Evaluate_GroupJoin_ShouldWork()
         //{
         //    Person magnus = new Person { FirstName = "Magnus" };
@@ -554,7 +599,7 @@ namespace Punica.Tests.Linq.Dynamic
         //        pets = pets
         //    };
 
-        //   // string stringExp = "people.GroupJoin(pets, person => person, pet => pet.Owner, (person, petCollection) => new { OwnerName = person.FirstName, Pets = petCollection.Select(pet => pet.Name) } )";
+        //    // string stringExp = "people.GroupJoin(pets, person => person, pet => pet.Owner, (person, petCollection) => new { OwnerName = person.FirstName, Pets = petCollection.Select(pet => pet.Name) } )";
 
         //    string stringExp = "GroupJoin(@pets, person, pet.Owner,  new { person.FirstName as 'OwnerName', petCollection.Select(Name) } as 'Pets' )";
         //    //TODO: may be use _ but the issue with two types of parameters
