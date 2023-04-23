@@ -1,4 +1,7 @@
-﻿using System.Linq.Expressions;
+﻿using System.Data.Common;
+using System.Linq.Expressions;
+using System.Reflection.Metadata;
+using Punica.Linq.Dynamic.RD.Rd2;
 using Punica.Linq.Dynamic.RD.Tokens.abstractions;
 
 namespace Punica.Linq.Dynamic.RD.Tokens
@@ -6,8 +9,10 @@ namespace Punica.Linq.Dynamic.RD.Tokens
     public class Argument //: ITokenList
     {
         private readonly List<string> _lambdas = new List<string>();
+        private bool _evaluvated = false;
+        private Expression _expression;
         private ParameterToken[] _parameter;
-        public IReadOnlyList<string> Lambdas => _lambdas;
+        // public IReadOnlyList<string> Lambdas => _lambdas;
         public bool IsLeftAssociative => true;
         public IExpression? Parameter { get; } = null;
         public List<IToken> Tokens { get; }
@@ -51,7 +56,7 @@ namespace Punica.Linq.Dynamic.RD.Tokens
 
                 if (token.TokenType == TokenType.CloseParen)
                 {
-                    if (!closeParenthesis && openParenthesis && Tokens.IndexOf(token)== Tokens.Count - 1)
+                    if (!closeParenthesis && openParenthesis && Tokens.IndexOf(token) == Tokens.Count - 1)
                     {
                         closeParenthesis = true;
                         continue;
@@ -74,7 +79,7 @@ namespace Punica.Linq.Dynamic.RD.Tokens
                     }
 
                     _lambdas.Add(propertyToken.Name);
-                    
+
                 }
             }
 
@@ -92,25 +97,87 @@ namespace Punica.Linq.Dynamic.RD.Tokens
             {
                 return true;
             }
-             
+
             return false;
         }
 
-
-        public ParameterExpression? SetParameterExpressionBody(IExpression memberExpression)
+        public ParameterExpression SetParameterExpressionBody(Type type, int index)
         {
-            if (_parameter.Length > 1)
+            if (index >= _parameter.Length)
             {
-                throw new Exception("More than 1 arg is not handled");
+                throw new Exception("Index exceed available parameters");
             }
 
-            if (_parameter.Length == 1)
-            {
-                _parameter[0].SetExpression(memberExpression);
-                return (ParameterExpression)_parameter[0].Evaluate();
-            }
+            _parameter[index].SetType(type);
 
-            return null;
+            return (ParameterExpression)_parameter[index].Evaluate();
         }
+
+        internal bool IsFunction()
+        {
+            return _parameter.Length != 0;
+        }
+
+        internal bool CanEvaluate()
+        {
+            if (_parameter.Length == 0)
+            {
+                return true;
+            }
+
+            foreach (var para in _parameter)
+            {
+                if (!para.IsInitialized())
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        internal Expression Evaluate()
+        {
+            if (!_evaluvated)
+            {
+                _expression = ExpressionEvaluator.Evaluate(Tokens);
+                _evaluvated = true;
+                return _expression;
+            }
+
+            return _expression;
+        }
+
+
+        public ArgumentData GetArgumentData()
+        {
+            if (CanEvaluate())
+            {
+                var expression = Evaluate();
+
+                return new ArgumentData(_parameter.Length != 0, _parameter.Length, expression.Type);
+
+            }
+
+
+            return new ArgumentData(_parameter.Length != 0, _parameter.Length, null);
+
+        }
+
+        //public ParameterExpression? SetParameterExpressionBody(IExpression memberExpression)
+        //{
+        //    if (_parameter.Length > 1)
+        //    {
+        //        throw new Exception("More than 1 arg is not handled");
+        //    }
+
+        //    if (_parameter.Length == 1)
+        //    {
+        //        _parameter[0].SetExpression(memberExpression);
+        //        return (ParameterExpression)_parameter[0].Evaluate();
+        //    }
+
+        //    return null;
+        //}
     }
 }

@@ -15,9 +15,9 @@ namespace Punica.Linq.Dynamic.RD.Rd2
     {
         //private readonly int _depth;
         public string MethodName { get; }
-        public IExpression MemberExpression { get; } 
+        public IExpression MemberExpression { get; }
         private IExpression? Parameter { get; }
-        public List<Argument> Tokens { get; }
+        public List<Argument> Arguments { get; }
         public bool IsLeftAssociative => false;
         public short Precedence => 14;
         public TokenType TokenType => TokenType.Operator;
@@ -29,14 +29,14 @@ namespace Punica.Linq.Dynamic.RD.Rd2
             // _depth = depth;
             MethodName = methodName;
             MemberExpression = memberExpression;
-            Tokens = new List<Argument>();
+            Arguments = new List<Argument>();
             //Parameter = parameter;
             // Parameter = new ParameterToken(memberExpression, "arg" + _depth);
         }
 
         public void AddToken(Argument token)
         {
-            Tokens.Add(token);
+            Arguments.Add(token);
         }
 
         //IEnumerable<TResult> SelectMany<TSource, TCollection, TResult>(this IEnumerable<TSource> source, Func<TSource, IEnumerable<TCollection>> collectionSelector, Func<TSource, TCollection, TResult> resultSelector)
@@ -44,40 +44,49 @@ namespace Punica.Linq.Dynamic.RD.Rd2
         public Expression Evaluate()
         {
             var memberExpression = MemberExpression.Evaluate();
-            ParameterExpression? parameter = null;// = (ParameterExpression)Parameter.Evaluate();
+            var expressions = new Expression[Arguments.Count + 1];
+            var finalExpressions = new Expression[Arguments.Count + 1];
+            expressions[0] = memberExpression;
+            finalExpressions[0] = memberExpression;
 
-            //var methodInfo = MethodFinder.Instance.GetMethod(memberExpression.Type, MethodName, Tokens.Count);
+            //var argData = new ArgumentData[Arguments.Count];
 
-            if (memberExpression.Type.IsCollection())
+
+            //for (var i = 0; i < Arguments.Count; i++)
+            //{
+            //    var argument = Arguments[i];
+            //    argData[i] = argument.GetArgumentData();
+            //}
+
+
+            var methodInfo = MethodFinder.Instance.GetMethod(memberExpression.Type, MethodName, Arguments); 
+            var resolver = MethodFinder.Instance.GetArgData(methodInfo);
+
+
+            //TODO handle for non extension types
+            //TODO handle for indexing in resolver since .IsFunc(i) and resolver.LambdasTypes(expressions, index) different
+            for (var i = 1; i < Arguments.Count + 1; i++)
             {
+                var index = i - 1;
+                var token = Arguments[index];
+                var paras = Array.Empty<ParameterExpression>();
 
-                List<Expression> expressions = new List<Expression>();
-                foreach (var token in Tokens)
+                if (resolver.IsFunc(i))
                 {
-                    //var list = token as ITokenList;
-                    parameter = token.SetParameterExpressionBody(MemberExpression);
+                    var types = resolver.LambdasTypes(expressions, index); //Might be incorrect, might need function position instead of parameter position
+                    paras = new ParameterExpression[types.Length];
 
-                    var expression = ExpressionEvaluator.Evaluate(token.Tokens);
-
-                    expressions.Add(expression);
+                    for (int j = 0; j < types.Length; j++)
+                    {
+                        var type = types[j];
+                        paras[j] = token.SetParameterExpressionBody(type, j);
+                    }
                 }
-
-                var methodHandler = MethodHandler.Instance.GetHandler(memberExpression.Type);
-
-                return methodHandler.CallMethod(MethodName, memberExpression, parameter, expressions.ToArray());
-
+                expressions[i] = token.Evaluate();
+                finalExpressions[i] = resolver.GetArguments(expressions, paras, i);
             }
-            else
-            {
-                switch (MethodName)
-                {
-                    default:
-                        throw new ArgumentException($"Invalid method {MethodName}");
-                }
 
-                //TODO find the method find the expression
-                // return Expression.Call(CachedMethodInfo.EnumerableContainsMethod(e1.Type), right);
-            }
+            return resolver.Resolve(expressions, finalExpressions);
         }
     }
 }

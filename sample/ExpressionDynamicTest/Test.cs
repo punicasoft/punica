@@ -58,4 +58,26 @@ public class Test
 
         Expression<Func<double>> exp2 = () => 5.6 / - 7.9;
     }
+
+    public void Test7(IEnumerable<A> data)
+    {
+       Test8(new List<A>());
+       Test8(new List<B>());
+       Test8(data);
+    }
+
+    public void Test8(IEnumerable<A> data)
+    {
+        
+    }
+
+}
+
+public class A
+{
+
+}
+
+public class B : A
+{
 }

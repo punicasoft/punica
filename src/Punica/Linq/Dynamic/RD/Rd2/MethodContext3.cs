@@ -7,7 +7,7 @@ namespace Punica.Linq.Dynamic.RD.Rd2
 {
     public class MethodContext3
     {
-
+        private const string _arg = "_arg";
         private readonly Dictionary<int, List<ParameterToken>> _parameters = new Dictionary<int, List<ParameterToken>>();
         private int _depth = 0;
 
@@ -47,12 +47,12 @@ namespace Punica.Linq.Dynamic.RD.Rd2
         {
             if (_depth == 0)
             {
-                return _parameters[0].First(p => p.Name == "_arg"); //should 
+                return _parameters[0].First(p => p.Name == _arg); //should 
             }
 
             if (!_parameters.ContainsKey(_depth))
             {
-                return AddParameter(new ParameterToken("arg" + _depth));
+                return AddParameter(new ParameterToken(_arg + _depth));
             }
             else
             {
@@ -101,7 +101,7 @@ namespace Punica.Linq.Dynamic.RD.Rd2
 
         public void AddParameter(IExpression expression)
         {
-            AddParameter(new ParameterToken(expression, "arg" + _depth));
+            AddParameter(new ParameterToken(expression, _arg + _depth));
         }
 
         public ParameterToken AddParameter(ParameterToken parameter)
