@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -8,6 +8,7 @@
 
 	  <Description>Punica</Description>
 	  <PackageId>$(AssemblyName)</PackageId>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <RootNamespace>$(AssemblyName)</RootNamespace>
 	  <Product>Punica</Product>
 	  <Authors>Radnima</Authors>
@@ -30,6 +31,7 @@
 
 	<ItemGroup>
 		<None Include="..\punica.png" Pack="true" Visible="false" PackagePath="" />
+		<None Include="..\..\docs\README.md" Pack="true" PackagePath="\"/>
 	</ItemGroup>
 
 	
