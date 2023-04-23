@@ -18,6 +18,8 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '7.0.x' # replace with your project's target framework version
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
 
       - name: Restore dependencies
         run: dotnet restore
@@ -29,6 +31,7 @@ jobs:
           BRANCH_NAME=${GITHUB_REF##*/}
           BUILD_NUMBER=$(echo $GITHUB_RUN_NUMBER)
           CONFIGURATION="Release"
+          PUSH_SYMBOLS=false
 
           case $BRANCH_NAME in
             main)
@@ -39,6 +42,7 @@ jobs:
             dev)
               VERSION="${VERSION}-beta.${BUILD_NUMBER}"
               CONFIGURATION="Debug"
+              PUSH_SYMBOLS=true
               ;;
           esac
 
@@ -56,8 +60,8 @@ jobs:
 
       - name: Publish to NuGet
         if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/dev') || startsWith(github.ref, 'refs/heads/release/')
-        uses: brandedoutcast/publish-nuget@v2
-        with:
-          PROJECT_FILE_PATH: src/Punica/Punica.csproj # replace with the path to your .csproj or .fsproj file
-          NUGET_KEY: ${{ secrets.NUGET_API_KEY }}
-          VERSION_STATIC: ${{ steps.versioning.outputs.configuration }}
+        run: dotnet nuget push ./<project>/out/*.nupkg --skip-duplicate --no-symbols true
+        
+      - name: Publish Symbols to NuGet
+        if: startsWith(github.ref, 'refs/heads/dev')
+        run: dotnet nuget push ./<project>/out/*.snupkg --skip-duplicate
