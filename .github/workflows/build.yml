@@ -55,7 +55,7 @@ jobs:
         run: dotnet pack --no-build --configuration ${{ steps.versioning.outputs.configuration }} --output out /p:Version=${{ steps.versioning.outputs.version }} /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg
 
       - name: Publish to NuGet
-        if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/dev/') || startsWith(github.ref, 'refs/heads/release/')
+        if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/dev') || startsWith(github.ref, 'refs/heads/release/')
         uses: brandedoutcast/publish-nuget@v2
         with:
           PROJECT_FILE_PATH: src/Punica/Punica.csproj # replace with the path to your .csproj or .fsproj file
