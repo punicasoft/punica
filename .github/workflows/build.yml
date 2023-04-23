@@ -61,7 +61,7 @@ jobs:
 
       - name: Publish to NuGet
         if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/dev') || startsWith(github.ref, 'refs/heads/release/')
-        run: dotnet nuget push ./out/*.nupkg --skip-duplicate --api-key ${{ secrets.NUGET_API_KEY }} --no-symbols true
+        run: dotnet nuget push ./out/*.nupkg --skip-duplicate --api-key ${{ secrets.NUGET_API_KEY }} --no-symbols
         
       - name: Publish Symbols to NuGet
         if: startsWith(github.ref, 'refs/heads/dev')
