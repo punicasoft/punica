@@ -22,8 +22,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Punica.Extensions.DependencyInjection\Punica.Extensions.DependencyInjection.csproj" />
-  </ItemGroup>
-
 </Project>

@@ -1,0 +1,63 @@
+name: Build and Publish
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - release/*
+
+jobs:
+  build_and_publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '6.0.x' # replace with your project's target framework version
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Set version and configuration
+        id: versioning
+        run: |
+          VERSION="1.0.0" # replace with your desired version
+          BRANCH_NAME=${GITHUB_REF##*/}
+          BUILD_NUMBER=$(echo $GITHUB_RUN_NUMBER)
+          CONFIGURATION="Release"
+
+          case $BRANCH_NAME in
+            main)
+              ;;
+            release/*)
+              VERSION="${VERSION}-rc.${BUILD_NUMBER}"
+              ;;
+            dev)
+              VERSION="${VERSION}-beta.${BUILD_NUMBER}"
+              CONFIGURATION="Debug"
+              ;;
+          esac
+
+          echo "::set-output name=version::$VERSION"
+          echo "::set-output name=configuration::$CONFIGURATION"
+
+      - name: Build
+        run: dotnet build --configuration ${{ steps.versioning.outputs.configuration }} --no-restore /p:Version=${{ steps.versioning.outputs.version }}
+
+      - name: Test
+        run: dotnet test --no-restore --verbosity normal
+
+      - name: Pack
+        run: dotnet pack --no-build --configuration ${{ steps.versioning.outputs.configuration }} --output out /p:Version=${{ steps.versioning.outputs.version }} /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg
+
+      - name: Publish to NuGet
+        if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.ref, 'refs/heads/release/')
+        uses: brandedoutcast/publish-nuget@v2
+        with:
+          PROJECT_FILE_PATH: YourProjectName/YourProjectName.csproj # replace with the path to your .csproj or .fsproj file
+          NUGET_KEY: ${{ secrets.NUGET_API_KEY }}
+          PACKAGE_NAME: YourPackageName # replace with your package name

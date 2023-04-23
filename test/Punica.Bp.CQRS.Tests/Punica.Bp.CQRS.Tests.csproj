@@ -22,8 +22,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Punica.Bp.CQRS\Punica.Bp.CQRS.csproj" />
-  </ItemGroup>
-
 </Project>
