@@ -11,7 +11,7 @@
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <RootNamespace>$(AssemblyName)</RootNamespace>
 	  <Product>Punica</Product>
-	  <Authors>Radnima</Authors>
+	  <Authors>Randima</Authors>
 	  <VersionPrefix>1.0.0-alpha.2</VersionPrefix>
 
 	  <RepositoryType>git</RepositoryType>
