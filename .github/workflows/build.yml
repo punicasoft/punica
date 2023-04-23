@@ -60,8 +60,8 @@ jobs:
 
       - name: Publish to NuGet
         if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/dev') || startsWith(github.ref, 'refs/heads/release/')
-        run: dotnet nuget push ./<project>/out/*.nupkg --skip-duplicate --no-symbols true
+        run: dotnet nuget push ./punica/out/*.nupkg --skip-duplicate --no-symbols true
         
       - name: Publish Symbols to NuGet
         if: startsWith(github.ref, 'refs/heads/dev')
-        run: dotnet nuget push ./<project>/out/*.snupkg --skip-duplicate
+        run: dotnet nuget push ./punica/out/*.snupkg --skip-duplicate
