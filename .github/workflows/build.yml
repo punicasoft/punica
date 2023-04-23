@@ -60,3 +60,4 @@ jobs:
         with:
           PROJECT_FILE_PATH: src/Punica/Punica.csproj # replace with the path to your .csproj or .fsproj file
           NUGET_KEY: ${{ secrets.NUGET_API_KEY }}
+          VERSION_STATIC:${{ steps.versioning.outputs.configuration }}
