@@ -36,11 +36,13 @@ jobs:
           
           if [[ $BRANCH_NAME == "main" ]]; then
             echo "Using main branch settings."
-          elif [[ $BRANCH_NAME == release/ ]]; then
+          elif [[ $BRANCH_NAME == release/** ]]; then
             VERSION="${VERSION}-rc.${BUILD_NUMBER}"
           elif [[ $BRANCH_NAME == dev ]]; then
             VERSION="${VERSION}-beta.${BUILD_NUMBER}"
             CONFIGURATION="Debug"
+          else
+            echo "$BRANCH_NAME"
           fi
 
           # case $BRANCH_NAME in
