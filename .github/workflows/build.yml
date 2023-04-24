@@ -37,7 +37,7 @@ jobs:
           if [[ $BRANCH_NAME == "main" ]]; then
             echo "Using main branch settings."
           elif [[ $BRANCH_NAME == release/* ]]; then
-            VERSION="${VERSION}-rc.${BUILD_NUMBER}"
+            VERSION="${VERSION}-alpha.${BUILD_NUMBER}"
           elif [[ $BRANCH_NAME == dev ]]; then
             VERSION="${VERSION}-beta.${BUILD_NUMBER}"
             CONFIGURATION="Debug"
