@@ -33,19 +33,28 @@ jobs:
           BUILD_NUMBER=$(echo $GITHUB_RUN_NUMBER)
           CONFIGURATION="Release"
           PUSH_SYMBOLS=false
+          
+          if [[ $BRANCH_NAME == "main" ]]; then
+            echo "Using main branch settings."
+          elif [[ $BRANCH_NAME == release/* ]]; then
+            VERSION="${VERSION}-rc.${BUILD_NUMBER}"
+          elif [[ $BRANCH_NAME == dev ]]; then
+            VERSION="${VERSION}-beta.${BUILD_NUMBER}"
+            CONFIGURATION="Debug"
+          fi
 
-          case $BRANCH_NAME in
-            main)
-              ;;
-            release/*)
-              VERSION="${VERSION}-rc.${BUILD_NUMBER}"
-              ;;
-            dev)
-              VERSION="${VERSION}-beta.${BUILD_NUMBER}"
-              CONFIGURATION="Debug"
-              PUSH_SYMBOLS=true
-              ;;
-          esac
+          # case $BRANCH_NAME in
+            # main)
+              # ;;
+            # release/*)
+              # VERSION="${VERSION}-rc.${BUILD_NUMBER}"
+              # ;;
+            # dev)
+              # VERSION="${VERSION}-beta.${BUILD_NUMBER}"
+              # CONFIGURATION="Debug"
+              # PUSH_SYMBOLS=true
+              # ;;
+          # esac
           
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "configuration=$CONFIGURATION"  >> $GITHUB_OUTPUT
