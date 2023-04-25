@@ -11,6 +11,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{4D2181F3-A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Punica.Tests", "test\Punica.Tests\Punica.Tests.csproj", "{94C41D3B-7FEE-4816-8CF5-13728B87AB15}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Punica.Extensions.DependencyInjection", "src\Punica.Extensions.DependencyInjection\Punica.Extensions.DependencyInjection.csproj", "{18295F08-0F30-449C-A7DD-9CFF25C50F09}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Punica.Extensions.DependencyInjection.Tests", "test\Punica.Extensions.DependencyInjection.Tests\Punica.Extensions.DependencyInjection.Tests.csproj", "{BF9CBDB9-429A-4D11-AB70-EE9260AD7526}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +29,14 @@ Global
 		{94C41D3B-7FEE-4816-8CF5-13728B87AB15}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94C41D3B-7FEE-4816-8CF5-13728B87AB15}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{94C41D3B-7FEE-4816-8CF5-13728B87AB15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18295F08-0F30-449C-A7DD-9CFF25C50F09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18295F08-0F30-449C-A7DD-9CFF25C50F09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18295F08-0F30-449C-A7DD-9CFF25C50F09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18295F08-0F30-449C-A7DD-9CFF25C50F09}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF9CBDB9-429A-4D11-AB70-EE9260AD7526}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF9CBDB9-429A-4D11-AB70-EE9260AD7526}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF9CBDB9-429A-4D11-AB70-EE9260AD7526}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF9CBDB9-429A-4D11-AB70-EE9260AD7526}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -32,6 +44,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{C46F76E4-2D43-4ED6-BB83-1376C2323ED4} = {6E5DD82A-8835-41DC-A5EE-4219BEE7B80C}
 		{94C41D3B-7FEE-4816-8CF5-13728B87AB15} = {4D2181F3-A671-4278-B79E-5239A7D5B5A0}
+		{18295F08-0F30-449C-A7DD-9CFF25C50F09} = {6E5DD82A-8835-41DC-A5EE-4219BEE7B80C}
+		{BF9CBDB9-429A-4D11-AB70-EE9260AD7526} = {4D2181F3-A671-4278-B79E-5239A7D5B5A0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B8B2037F-7F32-4DBA-B5B8-B6817F7677E0}
