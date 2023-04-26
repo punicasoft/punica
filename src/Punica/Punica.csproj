@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+
+	  <Description>Punica</Description>
+	  <PackageId>$(AssemblyName)</PackageId>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <RootNamespace>$(AssemblyName)</RootNamespace>
+	  <Product>Punica</Product>
+	  <Authors>Randima</Authors>
+	  <VersionPrefix>1.0.0-alpha.2</VersionPrefix>
+
+	  <RepositoryType>git</RepositoryType>
+	  <RepositoryUrl>https://github.com/punicasoft/punica</RepositoryUrl>
+
+	  
+  </PropertyGroup>
+
+	<PropertyGroup>
+		<PackageIcon>punica.png</PackageIcon>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<IsPackable>True</IsPackable>
+
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\punica.png" Pack="true" Visible="false" PackagePath="" />
+		<None Include="..\..\docs\README.md" Pack="true" PackagePath="\"/>
+	</ItemGroup>
+
+	
+
+
+</Project>
