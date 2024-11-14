@@ -26,7 +26,7 @@ namespace Punica.Extensions
             var genericTypeDefinition = fromType.GetGenericTypeDefinition();
 
 
-            implementedType = interfaces.FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == genericTypeDefinition);
+            implementedType = Array.Find(interfaces, i => i.IsGenericType && i.GetGenericTypeDefinition() == genericTypeDefinition);
 
 
             if (implementedType != null)
@@ -65,7 +65,7 @@ namespace Punica.Extensions
             var genericTypeDefinition = genericType.GetGenericTypeDefinition();
 
 
-            implementedType = interfaces.FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == genericTypeDefinition);
+            implementedType = Array.Find(interfaces,i => i.IsGenericType && i.GetGenericTypeDefinition() == genericTypeDefinition);
 
 
             if (implementedType != null)
@@ -168,7 +168,7 @@ namespace Punica.Extensions
             {
                 // Check if the type arguments for the Func type end with TOut
                 var genericArgs = type.GetGenericArguments();
-                return genericArgs.Last().Name == "TOut";
+                return genericArgs[^1].Name == "TOut";
             }
 
             return false;
