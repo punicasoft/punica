@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
@@ -20,7 +20,7 @@
 
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0" />
 	</ItemGroup>
 	
 	<PropertyGroup>
@@ -37,7 +37,7 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\Punica\Punica.csproj" />
 	  <None Include="..\punica.png" Pack="true" Visible="false" PackagePath="" />
-	  <None Include="..\..\docs\README.md" Pack="true" PackagePath="\"/>	
+	  <None Include="..\..\docs\README.md" Pack="true" PackagePath="\" />	
 	</ItemGroup>
 
 
